@@ -5,6 +5,8 @@
 
 #include "libstructpack.h"
 
+/* The following structs were adapted from my MiniVHD library to be used
+   as an example... */
 typedef struct MVHDFooter {
     char cookie[9];
     uint32_t features;
@@ -51,21 +53,6 @@ typedef struct MVHDSparseHeader {
 } MVHDSparseHeader;
 
 int main(int argc, char* argv[]) {
-    // int err;
-    // const char* fmt = "> 2I [2]q 2( 2b I i 2( [2]I ) )";
-    // struct fmt_str_parser p = new_parser(fmt, &err);
-    // if (!check_format_str(fmt)) {
-    //     printf("Invalid format string\n");
-    //     return EXIT_FAILURE;
-    // }
-    // printf("Byte order is %s endian\n", (p.endian == SP_BIG_ENDIAN) ? "Big" : "Little");
-    // while (parse_next(&p) == 0) {
-    //     printf("Type %c found, and is array: %s\n", p.current.type, (p.current.arr_len > 0) ? "yes" : "no");
-    // }
-    // return EXIT_SUCCESS;
-
-/* The following structs were adapted from my MiniVHD library to be used
-   as an example... */
     if (argc != 2) {
         printf("Expected One argument: path to a sparse or differencing VHD file.\n");
         return EXIT_FAILURE;
