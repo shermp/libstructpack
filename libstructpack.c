@@ -215,30 +215,30 @@ static bool is_whitespace_char(char ws) {
     }
     return false;
 }
-static SPResult check_format_str(const char* format_str) {
+static SPResult validate_format_str(const char* format_str) {
     size_t fmt_len = strlen(format_str);
     /* Check for invalid characters */
     char fmt;
     for (int i = 0; i < fmt_len; i++) {
         fmt = format_str[i];
         if (!(is_fmt_char(fmt) || is_endian_char(fmt) || is_arr_char(fmt) || is_group_char(fmt) || is_digit_char(fmt) || is_whitespace_char(fmt))) {
-            return SP_ERR_INVALID_FMT_CHAR;
+            return SP_ERR_INVALID_FMT_STR;
         }
     }
     /* Check that endian character only at beginning */
     for (int i = 0; i < fmt_len; i++) {
         if (is_endian_char(format_str[i]) && i > 0) {
-            return SP_ERR_INVALID_ENDIAN_LOC;
+            return SP_ERR_INVALID_FMT_STR;
         }
     }
     /* Check the string doesn't start with a '(' */
     if (format_str[0] == '(') {
-        return SP_ERR_INVALID_GRP_LOC;
+        return SP_ERR_INVALID_FMT_STR;
     }
     /* Make sure the format string ends with a valid character */
     fmt = format_str[fmt_len - 1];
     if (format_str[fmt_len - 1] != ')' && !is_fmt_char(format_str[fmt_len - 1]) && !is_whitespace_char(format_str[fmt_len - 1])) {
-        return SP_ERR_INVALID_END_CHAR;
+        return SP_ERR_INVALID_FMT_STR;
     }
     return SP_OK;
 }
@@ -272,7 +272,7 @@ static SPResult parse_next(struct fmt_str_parser* parser) {
     } else if (is_digit_char(parser->curr_pos[0])) {
         num = strtol(parser->curr_pos, &end_pos, 10);
         if (num > INT_MAX) {
-            return SP_ERR_INT_OVERFLOW;
+            return SP_ERR_INT;
         }
         /* Strings are special. They are always treated as arrays */
         if (*end_pos == 's') {
@@ -440,7 +440,7 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
         return SP_ERR_MISSING_PARAMS;
     }
     SPResult err;
-    err = check_format_str(sd->fmt_Str);
+    err = validate_format_str(sd->fmt_Str);
     if (err != SP_OK) {
         return err;
     }
