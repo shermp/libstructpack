@@ -464,12 +464,12 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
     return res;
 }
 
-SPResult sp_unpack_bin(SPStructDef* sd, void* dest_buff, int buff_len) {
-    return sp_pack_unpack_bin(SP_UNPACK, sd, dest_buff, buff_len);
+SPResult sp_unpack_bin(SPStructDef* sd, void* src_buff, int buff_len) {
+    return sp_pack_unpack_bin(SP_UNPACK, sd, src_buff, buff_len);
 }
 
-SPResult sp_pack_bin(SPStructDef* sd, void* src_buff, int buff_len) {
-    return sp_pack_unpack_bin(SP_PACK, sd, src_buff, buff_len);
+SPResult sp_pack_bin(SPStructDef* sd, void* dest_buff, int buff_len) {
+    return sp_pack_unpack_bin(SP_PACK, sd, dest_buff, buff_len);
 }
 
 #ifdef INCLUDE_MAIN

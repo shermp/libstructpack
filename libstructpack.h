@@ -69,7 +69,7 @@ typedef enum {
     SP_ERR_FIELD_CNT
 } SPResult;
 
-SPResult sp_unpack_bin(SPStructDef* sd, void* dest_buff, int buff_len);
-SPResult sp_pack_bin(SPStructDef* sd, void* src_buff, int buff_len);
+SPResult sp_unpack_bin(SPStructDef* sd, void* src_buff, int buff_len);
+SPResult sp_pack_bin(SPStructDef* sd, void* dest_buff, int buff_len);
 
 #endif
