@@ -441,6 +441,10 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
         return SP_ERR_MISSING_PARAMS;
     }
     SPResult err;
+    err = check_format_str(sd->fmt_Str);
+    if (err != SP_OK) {
+        return err;
+    }
     struct fmt_str_parser p = new_parser(sd->fmt_Str, &err);
     if (err != SP_OK) {
         return err;
