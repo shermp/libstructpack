@@ -472,7 +472,7 @@ SPResult sp_pack_bin(SPStructDef* sd, void* dest_buff, int buff_len) {
     return sp_pack_unpack_bin(SP_PACK, sd, dest_buff, buff_len);
 }
 
-#ifdef INCLUDE_MAIN
+#ifdef COMPILE_SP_EXAMPLE
 int main(int argc, char* argv[]) {
     // int err;
     // const char* fmt = "> 2I [2]q 2( 2b I i 2( [2]I ) )";
@@ -491,12 +491,15 @@ int main(int argc, char* argv[]) {
    as an example... */
     if (argc != 2) {
         printf("Expected One argument: path to a sparse or differencing VHD file.\n");
+        return EXIT_FAILURE;
     }
     char* vhd_path = argv[1];
-    FILE* f = fopen(vhd_path, "rb");
+    FILE* f = fopen(vhd_path, "rb+");
     if (f == NULL) {
         printf("Could not open %s\n", vhd_path);
+        return EXIT_FAILURE;
     }
+    int rv = EXIT_SUCCESS;
     typedef struct MVHDFooter {
         char cookie[9];
         uint32_t features;
@@ -597,20 +600,50 @@ int main(int argc, char* argv[]) {
     fread(foot_buff, 512, 1, f);
     MVHDFooter footer = {};
     sd_footer.struct_ptr = &footer;
-    int res = sp_unpack_bin(&sd_footer, foot_buff, sizeof foot_buff);
-    if (res != 0) {
+    SPResult res = sp_unpack_bin(&sd_footer, foot_buff, sizeof foot_buff);
+    if (res != SP_OK) {
         printf("Oops, something went wrong getting footer...\n");
+        rv = EXIT_FAILURE;
+        goto cleanup;
     }
-    if (strncmp(footer.cookie, "conectix", 8) == 0) {
+    if (strncmp(footer.cookie, "conectix", 8) != 0) {
+        printf("The file does not appear to be a VHD image. Aborting.\n");
+        rv = EXIT_FAILURE;
+        goto cleanup;
+    }
+    if (footer.data_offset != 0xffffffffffffffff) {
         uint8_t header_buff[1024];
         MVHDSparseHeader header = {};
         fseek(f, footer.data_offset, SEEK_SET);
         fread(header_buff, sizeof header_buff, 1, f);
         sd_header.struct_ptr = &header;
         res = sp_unpack_bin(&sd_header, header_buff, sizeof header_buff);
-        if (res != 0) {
-            printf("Oops, something went wrong getting footer...\n");
+        if (res != SP_OK) {
+            printf("Oops, something went wrong getting header...\n");
+            rv = EXIT_FAILURE;
+            goto cleanup;
         }
+        memset(header_buff, 0, sizeof header_buff);
+        res = sp_pack_bin(&sd_header, header_buff, sizeof header_buff);
+        if (res != SP_OK) {
+            printf("Oops, something went wrong setting header...\n");
+            rv = EXIT_FAILURE;
+            goto cleanup;
+        }
+        fseek(f, footer.data_offset, SEEK_SET);
+        fwrite(header_buff, sizeof header_buff, 1, f);
     }
+    memset(foot_buff, 0, sizeof foot_buff);
+    res = sp_pack_bin(&sd_footer, foot_buff, sizeof foot_buff);
+    if (res != SP_OK) {
+        printf("Oops, something went wrong setting footer...\n");
+        rv = EXIT_FAILURE;
+        goto cleanup;
+    }
+    fseek(f, -512, SEEK_END);
+    fwrite(foot_buff, sizeof foot_buff, 1, f);
+cleanup:
+    fclose(f);
+    return rv;
 }
 #endif
