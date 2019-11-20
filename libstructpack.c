@@ -5,6 +5,8 @@
 #include <string.h>
 #include "libstructpack.h"
 
+#define SP_MAX_GRP_DEPTH 11
+
 enum sp_endian {SP_BIG_ENDIAN, SP_LITTLE_ENDIAN};
 enum sp_action {SP_PACK, SP_UNPACK};
 
@@ -15,8 +17,8 @@ struct fmt_str_parser {
     /* Make a little array based stack to handle nested groups */
     struct {
         int depth;
-        int repeat[11];
-        const char* start[11];
+        int repeat[SP_MAX_GRP_DEPTH];
+        const char* start[SP_MAX_GRP_DEPTH];
     } groups;
     struct {
         int arr_len;
@@ -238,6 +240,21 @@ static SPResult validate_format_str(const char* format_str) {
     /* Make sure the format string ends with a valid character */
     fmt = format_str[fmt_len - 1];
     if (format_str[fmt_len - 1] != ')' && !is_fmt_char(format_str[fmt_len - 1]) && !is_whitespace_char(format_str[fmt_len - 1])) {
+        return SP_ERR_INVALID_FMT_STR;
+    }
+    /* Ensure groups are balanced and do not exceed maximum depth */
+    int depth = 0;
+    for (int i = 0; i < fmt_len; i++) {
+        if (depth >= SP_MAX_GRP_DEPTH) {
+            return SP_ERR_INVALID_FMT_STR;
+        }
+        if (format_str[i] == '(') {
+            depth++;
+        } else if (format_str[i] == ')') {
+            depth--;
+        }
+    }
+    if (depth != 0) {
         return SP_ERR_INVALID_FMT_STR;
     }
     return SP_OK;
