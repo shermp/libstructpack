@@ -335,128 +335,69 @@ static SPResult parse_next(struct fmt_str_parser* parser) {
     }
     return SP_OK;
 }
-
-static SPResult sp_unpack(struct fmt_str_parser* p, SPStructDef* sd, void* src_buff, int buff_len) {
-    uint8_t* buff_ptr = (uint8_t*)src_buff;
-    uint8_t* struct_ptr;
-    int i, j;
-    int len;
-    i = 0;
-    while (parse_next(p) == 0) {
-        struct_ptr = (uint8_t*)(sd->struct_ptr + sd->field_offsets[i]);
-        len = 1;
-        if (p->current.arr_len > 0) {
-            len = p->current.arr_len;
+static void sp_copy_8(void* struct_ptr, void* buff_ptr, int len, enum sp_action action, bool is_str) {
+    if (action == SP_UNPACK) {
+        memcpy(struct_ptr, buff_ptr, len);
+        if (is_str) {
+            /* Note, it is made clear in the format string docs that the dest char array MUST be
+               at least one character longer than the provided length. */
+            ((char*)struct_ptr)[len] = '\0';
         }
-        switch (p->current.type) {
-            case 'x':
-                buff_ptr += len;
-                break;
-            case 'b':
-            case 'B':
-                memcpy(struct_ptr, buff_ptr, len);
-                buff_ptr += len;
-                break;
-            case 'h':
-            case 'H': ;
-                uint16_t tmp16;
-                for (j = 0; j < len; j++) {
-                    memcpy(&tmp16, buff_ptr, sizeof tmp16);
-                    tmp16 = (p->endian == SP_BIG_ENDIAN) ? sp_from_be16(tmp16) : sp_from_le16(tmp16);
-                    memcpy(struct_ptr + (sizeof tmp16 * j), &tmp16, sizeof tmp16);
-                    buff_ptr += sizeof tmp16;
-                }
-                break;
-            case 'i':
-            case 'I': ;
-                uint32_t tmp32;
-                for (j = 0; j < len; j++) {
-                    memcpy(&tmp32, buff_ptr, sizeof tmp32);
-                    tmp32 = (p->endian == SP_BIG_ENDIAN) ? sp_from_be32(tmp32) : sp_from_le32(tmp32);
-                    memcpy(struct_ptr + (sizeof tmp32 * j), &tmp32, sizeof tmp32);
-                    buff_ptr += sizeof tmp32;
-                }
-                break;
-            case 'q':
-            case 'Q': ;
-                uint64_t tmp64;
-                for (j = 0; j < len; j++) {
-                    memcpy(&tmp64, buff_ptr, sizeof tmp64);
-                    tmp64 = (p->endian == SP_BIG_ENDIAN) ? sp_from_be64(tmp64) : sp_from_le64(tmp64);
-                    memcpy(struct_ptr + (sizeof tmp64 * j), &tmp64, sizeof tmp64);
-                    buff_ptr += sizeof tmp64;
-                }
-                break;
-            case 's':
-                strncpy((char*)struct_ptr, (const char*)buff_ptr, len);
-                struct_ptr[len] = '\0';
-                buff_ptr += len;
-                break;
-        }
-        i++;
+    } else {
+        memcpy(buff_ptr, struct_ptr, len);
     }
-    return SP_OK;
 }
 
-static SPResult sp_pack(struct fmt_str_parser* p, SPStructDef* sd, void* dst_buff, int buff_len) {
-    uint8_t* buff_ptr = (uint8_t*)dst_buff;
-    uint8_t* struct_ptr;
-    int i, j;
-    int len;
-    i = 0;
-    while (parse_next(p) == 0) {
-        struct_ptr = (uint8_t*)(sd->struct_ptr + sd->field_offsets[i]);
-        len = 1;
-        if (p->current.arr_len > 0) {
-            len = p->current.arr_len;
+static void sp_copy_16(void* struct_ptr, void* buff_ptr, int len, enum sp_endian endian, enum sp_action action) {
+    uint16_t tmp16;
+    int j;
+    void *src = (action == SP_UNPACK) ? buff_ptr : struct_ptr;
+    void *dst = (action == SP_UNPACK) ? struct_ptr : buff_ptr;
+    for (j = 0; j < len; j++) {
+        memcpy(&tmp16, src, sizeof tmp16);
+        if (action == SP_UNPACK) {
+            tmp16 = (endian == SP_BIG_ENDIAN) ? sp_from_be16(tmp16) : sp_from_le16(tmp16);
+        } else {
+            tmp16 = (endian == SP_BIG_ENDIAN) ? sp_to_be16(tmp16) : sp_to_le16(tmp16);
         }
-        switch (p->current.type) {
-            case 'x':
-                buff_ptr += len;
-                break;
-            case 'b':
-            case 'B':
-                memcpy(buff_ptr, struct_ptr, len);
-                buff_ptr += len;
-                break;
-            case 'h':
-            case 'H': ;
-                uint16_t tmp16;
-                for (j = 0; j < len; j++) {
-                    memcpy(&tmp16, struct_ptr + (sizeof tmp16 * j), sizeof tmp16);
-                    tmp16 = (p->endian == SP_BIG_ENDIAN) ? sp_to_be16(tmp16) : sp_to_le16(tmp16);
-                    memcpy(buff_ptr, &tmp16, sizeof tmp16);
-                    buff_ptr += sizeof tmp16;
-                }
-                break;
-            case 'i':
-            case 'I': ;
-                uint32_t tmp32;
-                for (j = 0; j < len; j++) {
-                    memcpy(&tmp32, struct_ptr + (sizeof tmp32 * j), sizeof tmp32);
-                    tmp32 = (p->endian == SP_BIG_ENDIAN) ? sp_to_be32(tmp32) : sp_to_le32(tmp32);
-                    memcpy(buff_ptr, &tmp32, sizeof tmp32);
-                    buff_ptr += sizeof tmp32;
-                }
-                break;
-            case 'q':
-            case 'Q': ;
-                uint64_t tmp64;
-                for (j = 0; j < len; j++) {
-                    memcpy(&tmp64, struct_ptr + (sizeof tmp64 * j), sizeof tmp64);
-                    tmp64 = (p->endian == SP_BIG_ENDIAN) ? sp_to_be64(tmp64) : sp_to_le64(tmp64);
-                    memcpy(buff_ptr, &tmp64, sizeof tmp64);
-                    buff_ptr += sizeof tmp64;
-                }
-                break;
-            case 's':
-                strncpy((char*)buff_ptr, (const char*)struct_ptr, len);
-                buff_ptr += len;
-                break;
-        }
-        i++;
+        memcpy(dst, &tmp16, sizeof tmp16);
+        src += sizeof tmp16;
+        dst += sizeof tmp16;
     }
-    return SP_OK;
+}
+static void sp_copy_32(void* struct_ptr, void* buff_ptr, int len, enum sp_endian endian, enum sp_action action) {
+    uint32_t tmp32;
+    int j;
+    void *src = (action == SP_UNPACK) ? buff_ptr : struct_ptr;
+    void *dst = (action == SP_UNPACK) ? struct_ptr : buff_ptr;
+    for (j = 0; j < len; j++) {
+        memcpy(&tmp32, src, sizeof tmp32);
+        if (action == SP_UNPACK) {
+            tmp32 = (endian == SP_BIG_ENDIAN) ? sp_from_be32(tmp32) : sp_from_le32(tmp32);
+        } else {
+            tmp32 = (endian == SP_BIG_ENDIAN) ? sp_to_be32(tmp32) : sp_to_le32(tmp32);
+        }
+        memcpy(dst, &tmp32, sizeof tmp32);
+        src += sizeof tmp32;
+        dst += sizeof tmp32;
+    }
+}
+static void sp_copy_64(void* struct_ptr, void* buff_ptr, int len, enum sp_endian endian, enum sp_action action) {
+    uint64_t tmp64;
+    int j;
+    void *src = (action == SP_UNPACK) ? buff_ptr : struct_ptr;
+    void *dst = (action == SP_UNPACK) ? struct_ptr : buff_ptr;
+    for (j = 0; j < len; j++) {
+        memcpy(&tmp64, src, sizeof tmp64);
+        if (action == SP_UNPACK) {
+            tmp64 = (endian == SP_BIG_ENDIAN) ? sp_from_be64(tmp64) : sp_from_le64(tmp64);
+        } else {
+            tmp64 = (endian == SP_BIG_ENDIAN) ? sp_to_be64(tmp64) : sp_to_le64(tmp64);
+        }
+        memcpy(dst, &tmp64, sizeof tmp64);
+        src += sizeof tmp64;
+        dst += sizeof tmp64;
+    }
 }
 
 static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void* buff, int buff_len) {
@@ -485,11 +426,51 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
         return SP_ERR_FIELD_CNT;
     }
     reset_parser(&p);
-    SPResult res;
-    if (action == SP_UNPACK) {
-        res = sp_unpack(&p, sd, buff, buff_len);
-    } else {
-        res = sp_pack(&p, sd, buff, buff_len);
+    SPResult res = SP_OK;
+    uint8_t* buff_ptr = (uint8_t*)buff;
+    uint8_t* struct_ptr;
+    int off_index = 0;
+    int len;
+    while ((res = parse_next(&p)) == SP_OK) {
+        struct_ptr = (uint8_t*)(sd->struct_ptr + sd->field_offsets[off_index]);
+        len = 1;
+        if (p.current.arr_len > 0) {
+            len = p.current.arr_len;
+        }
+        switch (p.current.type) {
+            case 'x':
+                off_index--;
+                buff_ptr += len;
+                break;
+            case 'b':
+            case 'B':
+                sp_copy_8(struct_ptr, buff_ptr, len, action, false);
+                buff_ptr += len;
+                break;
+            case 'h':
+            case 'H':
+                sp_copy_16(struct_ptr, buff_ptr, len, p.endian, action);
+                buff_ptr += len * 2;
+                break;
+            case 'i':
+            case 'I':
+                sp_copy_32(struct_ptr, buff_ptr, len, p.endian, action);
+                buff_ptr += len * 4; 
+                break;
+            case 'q':
+            case 'Q':
+                sp_copy_64(struct_ptr, buff_ptr, len, p.endian, action);
+                buff_ptr += len * 8;
+                break;
+            case 's':
+                sp_copy_8(struct_ptr, buff_ptr, len, action, true);
+                buff_ptr += len;
+                break;
+        }
+        off_index++;
+    }
+    if (res == SP_NULL_CHAR) {
+        res = SP_OK;
     }
     return res;
 }
