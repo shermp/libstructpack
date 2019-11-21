@@ -143,16 +143,16 @@ static uint64_t sp_to_le64(uint64_t val) {
     tmp[0] = (val & 0x00000000000000ff) >> 0;
     return ret;
 }
-
+static const char* advance_fmt_str(const char** c);
 static void reset_parser(struct fmt_str_parser* parser) {
     parser->curr_pos = parser->fmt_str;
     parser->endian = SP_LITTLE_ENDIAN;
     if (parser->curr_pos[0] == '>') {
         parser->endian = SP_BIG_ENDIAN;
-        parser->curr_pos += 1;
+        advance_fmt_str(&parser->curr_pos);
     } else if (parser->curr_pos[0] == '<') {
         parser->endian = SP_LITTLE_ENDIAN;
-        parser->curr_pos += 1;
+        advance_fmt_str(&parser->curr_pos);
     }
     parser->current.type = '\0';
     parser->current.arr_len = 0;
@@ -217,6 +217,13 @@ static bool is_whitespace_char(char ws) {
     }
     return false;
 }
+const char* advance_fmt_str(const char** c) {
+    *c += 1;
+    while (is_whitespace_char(**c)) {
+        *c += 1;
+    }
+    return *c;
+}
 static SPResult validate_format_str(const char* format_str) {
     size_t fmt_len = strlen(format_str);
     /* Check for invalid characters */
@@ -263,9 +270,6 @@ static SPResult validate_format_str(const char* format_str) {
 static SPResult parse_next(struct fmt_str_parser* parser) {
     char *end_pos;
     long num;
-    while (parser->curr_pos[0] == ' ' || parser->curr_pos[0] == '\t') {
-        parser->curr_pos++;
-    }
     if (parser->curr_pos[0] == '\0') {
         return SP_NULL_CHAR;
     }
@@ -275,21 +279,27 @@ static SPResult parse_next(struct fmt_str_parser* parser) {
         parser->current.type = parser->curr_pos[0];
         parser->current.arr_len = 0;
         parser->current.repeat = 0;
-        parser->curr_pos++;
+        advance_fmt_str(&parser->curr_pos);
     } else if (parser->curr_pos[0] == '[') {
-        num = strtol(parser->curr_pos + 1, &end_pos, 10);
-        if (num > INT_MAX || *end_pos != ']' || !is_fmt_char(end_pos[1])) {
+        num = strtol(advance_fmt_str(&parser->curr_pos), &end_pos, 10);
+        if (is_whitespace_char(*end_pos)) {
+            advance_fmt_str((const char**)&end_pos);
+        }
+        if (num > INT_MAX || *end_pos != ']' || !is_fmt_char(*advance_fmt_str((const char**)&end_pos))) {
             return SP_ERR_INVALID_ARR;
         }
-        parser->curr_pos = (const char*)end_pos + 1;
+        parser->curr_pos = (const char*)end_pos;
         parser->current.arr_len = (int)num;
         parser->current.repeat = 0;
         parser->current.type = parser->curr_pos[0];
-        parser->curr_pos++;
+        advance_fmt_str(&parser->curr_pos);
     } else if (is_digit_char(parser->curr_pos[0])) {
         num = strtol(parser->curr_pos, &end_pos, 10);
         if (num > INT_MAX) {
             return SP_ERR_INT;
+        }
+        if (is_whitespace_char(*end_pos)) {
+            advance_fmt_str((const char**)&end_pos);
         }
         /* Strings are special. They are always treated as arrays */
         if (*end_pos == 's') {
@@ -297,15 +307,15 @@ static SPResult parse_next(struct fmt_str_parser* parser) {
             parser->current.repeat = 0;
             parser->current.arr_len = (int)num;
             parser->current.type = parser->curr_pos[0];
-            parser->curr_pos++;
+            advance_fmt_str(&parser->curr_pos);
         } else if (is_fmt_char(*end_pos)) {
             parser->curr_pos = (const char*)end_pos;
             parser->current.repeat = (int)num - 1;
             parser->current.type = parser->curr_pos[0];
             parser->current.arr_len = 0;
-            parser->curr_pos++;
+            advance_fmt_str(&parser->curr_pos);
         } else if (*end_pos == '(') {
-            parser->curr_pos = end_pos + 1;
+            parser->curr_pos = advance_fmt_str((const char**)&end_pos);
             parser->groups.depth++;
             parser->groups.start[parser->groups.depth] = parser->curr_pos;
             parser->groups.repeat[parser->groups.depth] = (int)num - 1;
@@ -315,7 +325,7 @@ static SPResult parse_next(struct fmt_str_parser* parser) {
         if (parser->groups.repeat[parser->groups.depth] == 0) {
             parser->groups.start[parser->groups.depth] = NULL;
             parser->groups.depth--;
-            parser->curr_pos++;
+            advance_fmt_str(&parser->curr_pos);
             return parse_next(parser);
         } else {
             parser->groups.repeat[parser->groups.depth]--;
