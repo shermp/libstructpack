@@ -1,8 +1,6 @@
 #ifndef LIBSTRUCTPACK_H
 #define LIBSTRUCTPACK_H
 
-#include <stddef.h>
-
 /*******************************************************************
  *                   Format String Details                         *
  *******************************************************************
@@ -50,7 +48,7 @@
 typedef struct SPStructDef {
     const char* fmt_str;
     void**      field_ptr;
-    size_t      num_fields;
+    int      num_fields;
 } SPStructDef;
 
 typedef enum {

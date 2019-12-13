@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     MVHDFooter footer = {};
     struct FooterPtr fp = create_foot_arr(&footer);
     sd_footer.field_ptr = fp.arr;
-    sd_footer.num_fields = sizeof fp.arr / sizeof *fp.arr;
+    sd_footer.num_fields = (int)(sizeof fp.arr / sizeof *fp.arr);
     sd_footer.fmt_str = "> [8]s 2I Q I [4]s I [4]s 2Q HBB 2I [16]B B [427]B";
 
     fseek(f, -512, SEEK_END);
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
         SPStructDef sd_header = {};
         struct HeadPtr hp = create_head_arr(&header);
         sd_header.field_ptr = hp.arr;
-        sd_header.num_fields = sizeof hp.arr / sizeof *hp.arr;
+        sd_header.num_fields = (int)(sizeof hp.arr / sizeof *hp.arr);
         sd_header.fmt_str = "> 8s 2Q 4I [16]B 2I [512]B 8(4s 3I Q) [256]B";
 
         fseek(f, footer.data_offset, SEEK_SET);
