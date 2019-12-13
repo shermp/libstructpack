@@ -49,7 +49,7 @@
 
 typedef struct SPStructDef {
     void*       struct_ptr;
-    const char* fmt_Str;
+    const char* fmt_str;
     size_t*     field_offsets;
     size_t      num_fields;
 } SPStructDef;

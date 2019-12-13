@@ -404,15 +404,15 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
     if (sd == NULL || buff == NULL || buff_len == 0) {
         return SP_ERR_MISSING_PARAMS;
     }
-    if (sd->struct_ptr == NULL || sd->field_offsets == NULL || sd->fmt_Str == NULL || sd->num_fields == 0) {
+    if (sd->struct_ptr == NULL || sd->field_offsets == NULL || sd->fmt_str == NULL || sd->num_fields == 0) {
         return SP_ERR_MISSING_PARAMS;
     }
     SPResult err;
-    err = validate_format_str(sd->fmt_Str);
+    err = validate_format_str(sd->fmt_str);
     if (err != SP_OK) {
         return err;
     }
-    struct fmt_str_parser p = new_parser(sd->fmt_Str, &err);
+    struct fmt_str_parser p = new_parser(sd->fmt_str, &err);
     if (err != SP_OK) {
         return err;
     }
