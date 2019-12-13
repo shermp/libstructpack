@@ -1,7 +1,6 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
 #include "libstructpack.h"
 
@@ -9,6 +8,7 @@
 
 enum sp_endian {SP_BIG_ENDIAN, SP_LITTLE_ENDIAN};
 enum sp_action {SP_PACK, SP_UNPACK};
+typedef enum { SP_FALSE, SP_TRUE } sp_bool;
 
 struct fmt_str_parser {
     const char* fmt_str;
@@ -170,7 +170,7 @@ static struct fmt_str_parser new_parser(const char* fmt_str, SPResult* err) {
     return parser;
 }
 
-static bool is_fmt_char(char fmt) {
+static sp_bool is_fmt_char(char fmt) {
     if (
         fmt == 'x' || 
         fmt == 'b' || 
@@ -183,39 +183,39 @@ static bool is_fmt_char(char fmt) {
         fmt == 'Q' ||
         fmt == 's'
     ) {
-        return true;
+        return SP_TRUE;
     }
-    return false;
+    return SP_FALSE;
 }
-static bool is_endian_char(char end) {
+static sp_bool is_endian_char(char end) {
     if (end == '<' || end == '>') {
-        return true;
+        return SP_TRUE;
     }
-    return false;
+    return SP_FALSE;
 }
-static bool is_arr_char(char arr) {
+static sp_bool is_arr_char(char arr) {
     if (arr == '[' || arr == ']') {
-        return true;
+        return SP_TRUE;
     }
-    return false;
+    return SP_FALSE;
 }
-static bool is_group_char(char grp) {
+static sp_bool is_group_char(char grp) {
     if (grp == '(' || grp == ')') {
-        return true;
+        return SP_TRUE;
     }
-    return false;
+    return SP_FALSE;
 }
-static bool is_digit_char(char digit) {
+static sp_bool is_digit_char(char digit) {
     if (digit >= '0' && digit <= '9') {
-        return true;
+        return SP_TRUE;
     }
-    return false;
+    return SP_FALSE;
 }
-static bool is_whitespace_char(char ws) {
+static sp_bool is_whitespace_char(char ws) {
     if (ws == ' ' || ws == '\t') {
-        return true;
+        return SP_TRUE;
     }
-    return false;
+    return SP_FALSE;
 }
 const char* advance_fmt_str(const char** c) {
     *c += 1;
@@ -335,7 +335,7 @@ static SPResult parse_next(struct fmt_str_parser* parser) {
     }
     return SP_OK;
 }
-static void sp_copy_8(void* struct_ptr, void* buff_ptr, int len, enum sp_action action, bool is_str) {
+static void sp_copy_8(void* struct_ptr, void* buff_ptr, int len, enum sp_action action, sp_bool is_str) {
     if (action == SP_UNPACK) {
         memcpy(struct_ptr, buff_ptr, len);
         if (is_str) {
@@ -444,7 +444,7 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
                 break;
             case 'b':
             case 'B':
-                sp_copy_8(struct_ptr, buff_ptr, len, action, false);
+                sp_copy_8(struct_ptr, buff_ptr, len, action, SP_FALSE);
                 buff_ptr += len;
                 break;
             case 'h':
@@ -463,7 +463,7 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
                 buff_ptr += len * 8;
                 break;
             case 's':
-                sp_copy_8(struct_ptr, buff_ptr, len, action, true);
+                sp_copy_8(struct_ptr, buff_ptr, len, action, SP_TRUE);
                 buff_ptr += len;
                 break;
         }
