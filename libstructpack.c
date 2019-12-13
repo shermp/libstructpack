@@ -404,7 +404,7 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
     if (sd == NULL || buff == NULL || buff_len == 0) {
         return SP_ERR_MISSING_PARAMS;
     }
-    if (sd->struct_ptr == NULL || sd->field_offsets == NULL || sd->fmt_str == NULL || sd->num_fields == 0) {
+    if (sd->field_ptr == NULL || sd->fmt_str == NULL || sd->num_fields == 0) {
         return SP_ERR_MISSING_PARAMS;
     }
     SPResult err;
@@ -432,7 +432,7 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
     int off_index = 0;
     int len;
     while ((res = parse_next(&p)) == SP_OK) {
-        struct_ptr = (uint8_t*)(sd->struct_ptr + sd->field_offsets[off_index]);
+        struct_ptr = sd->field_ptr[off_index];
         len = 1;
         if (p.current.arr_len > 0) {
             len = p.current.arr_len;
