@@ -407,13 +407,9 @@ static SPResult sp_pack_unpack_bin( enum sp_action action,
                                     size_t* offset_list, 
                                     void* offset_base,
                                     void* buff, 
-                                    int buff_len) {
-    if (buff == NULL || buff_len == 0) {
-        return SP_ERR_MISSING_PARAMS;
-    }
-    if (fmt_str == NULL || num_fields == 0) {
-         return SP_ERR_MISSING_PARAMS;
-    }
+                                    int buff_len) 
+{
+
     SPResult err;
     err = validate_format_str(fmt_str);
     if (err != SP_OK) {
@@ -492,6 +488,9 @@ SPResult sp_unpack_bin_ptr( const char* fmt_str,
                             void* src_buff, 
                             int buff_len ) 
 {
+    if (!fmt_str || num_fields <= 0 || !ptr_list || !src_buff || buff_len <= 0) {
+        return SP_ERR_MISSING_PARAMS;
+    }
     return sp_pack_unpack_bin(SP_UNPACK, fmt_str, num_fields, ptr_list, NULL, NULL, src_buff, buff_len);
 }
 
@@ -501,6 +500,9 @@ SPResult sp_pack_bin_ptr(const char* fmt_str,
                          void* dest_buff, 
                          int buff_len) 
 {
+    if (!fmt_str || num_fields <= 0 || !ptr_list || !dest_buff || buff_len <= 0) {
+        return SP_ERR_MISSING_PARAMS;
+    }
     return sp_pack_unpack_bin(SP_PACK, fmt_str, num_fields, ptr_list, NULL, NULL, dest_buff, buff_len);
 }
 
@@ -511,6 +513,9 @@ SPResult sp_unpack_bin_offset(  const char* fmt_str,
                                 void* src_buff, 
                                 int buff_len ) 
 {
+    if (!fmt_str || num_fields <= 0 || !offset_list || !offset_base || !src_buff || buff_len <= 0) {
+        return SP_ERR_MISSING_PARAMS;
+    }
     return sp_pack_unpack_bin(SP_UNPACK, fmt_str, num_fields, NULL, offset_list, offset_base, src_buff, buff_len);
 }
 
@@ -521,5 +526,8 @@ SPResult sp_pack_bin_offset(const char* fmt_str,
                             void* dest_buff, 
                             int buff_len) 
 {
+    if (!fmt_str || num_fields <= 0 || !offset_list || !offset_base || !dest_buff || buff_len <= 0) {
+        return SP_ERR_MISSING_PARAMS;
+    }
     return sp_pack_unpack_bin(SP_PACK, fmt_str, num_fields, NULL, offset_list, offset_base, dest_buff, buff_len);
 }
