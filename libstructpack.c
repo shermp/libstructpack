@@ -400,19 +400,26 @@ static void sp_copy_64(void* struct_ptr, void* buff_ptr, int len, enum sp_endian
     }
 }
 
-static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void* buff, int buff_len) {
-    if (sd == NULL || buff == NULL || buff_len == 0) {
+static SPResult sp_pack_unpack_bin( enum sp_action action, 
+                                    const char* fmt_str, 
+                                    int num_fields,
+                                    void** ptr_list, 
+                                    size_t* offset_list, 
+                                    void* offset_base,
+                                    void* buff, 
+                                    int buff_len) {
+    if (buff == NULL || buff_len == 0) {
         return SP_ERR_MISSING_PARAMS;
     }
-    if (sd->field_ptr == NULL || sd->fmt_str == NULL || sd->num_fields == 0) {
-        return SP_ERR_MISSING_PARAMS;
+    if (fmt_str == NULL || num_fields == 0) {
+         return SP_ERR_MISSING_PARAMS;
     }
     SPResult err;
-    err = validate_format_str(sd->fmt_str);
+    err = validate_format_str(fmt_str);
     if (err != SP_OK) {
         return err;
     }
-    struct fmt_str_parser p = new_parser(sd->fmt_str, &err);
+    struct fmt_str_parser p = new_parser(fmt_str, &err);
     if (err != SP_OK) {
         return err;
     }
@@ -422,7 +429,7 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
             parsed_count++;
         }
     }
-    if (parsed_count != sd->num_fields) {
+    if (parsed_count != num_fields) {
         return SP_ERR_FIELD_CNT;
     }
     reset_parser(&p);
@@ -432,7 +439,11 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
     int off_index = 0;
     int len;
     while ((res = parse_next(&p)) == SP_OK) {
-        struct_ptr = sd->field_ptr[off_index];
+        if (offset_list != NULL) {
+            struct_ptr = (uint8_t*)(offset_base + offset_list[off_index]);
+        } else {
+            struct_ptr = (uint8_t*)ptr_list[off_index];
+        }
         len = 1;
         if (p.current.arr_len > 0) {
             len = p.current.arr_len;
@@ -475,10 +486,40 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
     return res;
 }
 
-SPResult sp_unpack_bin(SPStructDef* sd, void* src_buff, int buff_len) {
-    return sp_pack_unpack_bin(SP_UNPACK, sd, src_buff, buff_len);
+SPResult sp_unpack_bin_ptr( const char* fmt_str, 
+                            int num_fields, 
+                            void** ptr_list, 
+                            void* src_buff, 
+                            int buff_len ) 
+{
+    return sp_pack_unpack_bin(SP_UNPACK, fmt_str, num_fields, ptr_list, NULL, NULL, src_buff, buff_len);
 }
 
-SPResult sp_pack_bin(SPStructDef* sd, void* dest_buff, int buff_len) {
-    return sp_pack_unpack_bin(SP_PACK, sd, dest_buff, buff_len);
+SPResult sp_pack_bin_ptr(const char* fmt_str, 
+                         int num_fields, 
+                         void** ptr_list, 
+                         void* dest_buff, 
+                         int buff_len) 
+{
+    return sp_pack_unpack_bin(SP_PACK, fmt_str, num_fields, ptr_list, NULL, NULL, dest_buff, buff_len);
+}
+
+SPResult sp_unpack_bin_offset(  const char* fmt_str, 
+                                int num_fields, 
+                                size_t* offset_list, 
+                                void* offset_base,
+                                void* src_buff, 
+                                int buff_len ) 
+{
+    return sp_pack_unpack_bin(SP_UNPACK, fmt_str, num_fields, NULL, offset_list, offset_base, src_buff, buff_len);
+}
+
+SPResult sp_pack_bin_offset(const char* fmt_str, 
+                            int num_fields, 
+                            size_t* offset_list, 
+                            void* offset_base,
+                            void* dest_buff, 
+                            int buff_len) 
+{
+    return sp_pack_unpack_bin(SP_PACK, fmt_str, num_fields, NULL, offset_list, offset_base, dest_buff, buff_len);
 }
