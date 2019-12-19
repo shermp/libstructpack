@@ -161,7 +161,7 @@ static void reset_parser(struct fmt_str_parser* parser) {
 static struct fmt_str_parser new_parser(const char* fmt_str, SPResult* err) {
     *err = SP_OK;
     struct fmt_str_parser parser = {};
-    if (fmt_str == NULL || fmt_str[0] == '\0') {
+    if (!fmt_str || fmt_str[0] == '\0') {
         *err = SP_NULL_CHAR;
         return parser;
     }
@@ -435,7 +435,7 @@ static SPResult sp_pack_unpack_bin( enum sp_action action,
     int off_index = 0;
     int len;
     while ((res = parse_next(&p)) == SP_OK) {
-        if (offset_list != NULL) {
+        if (offset_list) {
             struct_ptr = (uint8_t*)(offset_base + offset_list[off_index]);
         } else {
             struct_ptr = (uint8_t*)ptr_list[off_index];
