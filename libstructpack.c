@@ -260,6 +260,10 @@ static SPResult validate_format_str(const char* format_str) {
         } else if (format_str[i] == ')') {
             depth--;
         }
+        /* if depth < 0, it means we started with a closing parenthesis */
+        if (depth < 0) {
+            return SP_ERR_INVALID_FMT_STR;
+        }
     }
     if (depth != 0) {
         return SP_ERR_INVALID_FMT_STR;
@@ -325,6 +329,9 @@ static SPResult parse_next(struct fmt_str_parser* parser) {
         if (parser->groups.repeat[parser->groups.depth] == 0) {
             parser->groups.start[parser->groups.depth] = NULL;
             parser->groups.depth--;
+            if (parser->groups.depth < 0) {
+                return SP_ERR_INVALID_FMT_STR;
+            }
             advance_fmt_str(&parser->curr_pos);
             return parse_next(parser);
         } else {
