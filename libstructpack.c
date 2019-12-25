@@ -246,7 +246,7 @@ static SPResult validate_format_str(const char* format_str) {
     }
     /* Make sure the format string ends with a valid character */
     fmt = format_str[fmt_len - 1];
-    if (format_str[fmt_len - 1] != ')' && !is_fmt_char(format_str[fmt_len - 1]) && !is_whitespace_char(format_str[fmt_len - 1])) {
+    if (fmt != ')' && !is_fmt_char(fmt) && !is_whitespace_char(fmt)) {
         return SP_ERR_INVALID_FMT_STR;
     }
     /* Ensure groups are balanced and do not exceed maximum depth */
