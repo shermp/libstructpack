@@ -146,7 +146,7 @@ static uint64_t sp_to_le64(uint64_t val) {
 static const char* advance_fmt_str(const char** c);
 static void reset_parser(struct fmt_str_parser* parser) {
     parser->curr_pos = parser->fmt_str;
-    parser->endian = SP_LITTLE_ENDIAN;
+    parser->endian = SP_BIG_ENDIAN;
     if (parser->curr_pos[0] == '>') {
         parser->endian = SP_BIG_ENDIAN;
         advance_fmt_str(&parser->curr_pos);
