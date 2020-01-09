@@ -226,16 +226,17 @@ const char* advance_fmt_str(const char** c) {
 }
 static SPResult validate_format_str(const char* format_str) {
     size_t fmt_len = strlen(format_str);
+    int i;
     /* Check for invalid characters */
     char fmt;
-    for (int i = 0; i < fmt_len; i++) {
+    for (i = 0; i < fmt_len; i++) {
         fmt = format_str[i];
         if (!(is_fmt_char(fmt) || is_endian_char(fmt) || is_arr_char(fmt) || is_group_char(fmt) || is_digit_char(fmt) || is_whitespace_char(fmt))) {
             return SP_ERR_INVALID_FMT_STR;
         }
     }
     /* Check that endian character only at beginning */
-    for (int i = 0; i < fmt_len; i++) {
+    for (i = 0; i < fmt_len; i++) {
         if (is_endian_char(format_str[i]) && i > 0) {
             return SP_ERR_INVALID_FMT_STR;
         }
@@ -251,13 +252,14 @@ static SPResult validate_format_str(const char* format_str) {
     }
     /* Ensure groups are balanced and do not exceed maximum depth */
     int depth = 0;
-    for (int i = 0; i < fmt_len; i++) {
+    for (i = 0; i < fmt_len; i++) {
+        fmt = format_str[i];
         if (depth >= SP_MAX_GRP_DEPTH) {
             return SP_ERR_INVALID_FMT_STR;
         }
-        if (format_str[i] == '(') {
+        if (fmt == '(') {
             depth++;
-        } else if (format_str[i] == ')') {
+        } else if (fmt == ')') {
             depth--;
         }
         /* if depth < 0, it means we started with a closing parenthesis */
@@ -268,6 +270,33 @@ static SPResult validate_format_str(const char* format_str) {
     if (depth != 0) {
         return SP_ERR_INVALID_FMT_STR;
     }
+    /* Ensure correct array syntax */
+    sp_bool arr_open = SP_FALSE;
+    for (i = 0; i < fmt_len; i++) {
+        fmt = format_str[i];
+        if ((fmt == ']' && !arr_open) || (fmt == '[' && arr_open)) {
+            return SP_ERR_INVALID_FMT_STR;
+        }
+        if (fmt == '[') {
+            arr_open = SP_TRUE;
+        }
+        if (fmt == ']') {
+            arr_open = SP_FALSE;
+        }
+    }
+    /* Ensure no spaces between digits */
+    const char *tmp_fmt;
+    for (i = 0; i < fmt_len; i++) {
+        fmt = format_str[i];
+        if (is_digit_char(fmt) && is_whitespace_char(format_str[i + 1])) {
+            tmp_fmt = (format_str + i);
+            advance_fmt_str(&tmp_fmt);
+            if (is_digit_char(*tmp_fmt)) {
+                return SP_ERR_INVALID_FMT_STR;
+            }
+        }
+    }
+
     return SP_OK;
 }
 
