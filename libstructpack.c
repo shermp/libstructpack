@@ -146,7 +146,7 @@ static uint64_t sp_to_le64(uint64_t val) {
 static const char* advance_fmt_str(const char** c);
 static void reset_parser(struct fmt_str_parser* parser) {
     parser->curr_pos = parser->fmt_str;
-    parser->endian = SP_LITTLE_ENDIAN;
+    parser->endian = SP_BIG_ENDIAN;
     if (parser->curr_pos[0] == '>') {
         parser->endian = SP_BIG_ENDIAN;
         advance_fmt_str(&parser->curr_pos);
@@ -161,7 +161,7 @@ static void reset_parser(struct fmt_str_parser* parser) {
 static struct fmt_str_parser new_parser(const char* fmt_str, SPResult* err) {
     *err = SP_OK;
     struct fmt_str_parser parser = {};
-    if (fmt_str == NULL || fmt_str[0] == '\0') {
+    if (!fmt_str || fmt_str[0] == '\0') {
         *err = SP_NULL_CHAR;
         return parser;
     }
@@ -226,16 +226,17 @@ const char* advance_fmt_str(const char** c) {
 }
 static SPResult validate_format_str(const char* format_str) {
     size_t fmt_len = strlen(format_str);
+    int i;
     /* Check for invalid characters */
     char fmt;
-    for (int i = 0; i < fmt_len; i++) {
+    for (i = 0; i < fmt_len; i++) {
         fmt = format_str[i];
         if (!(is_fmt_char(fmt) || is_endian_char(fmt) || is_arr_char(fmt) || is_group_char(fmt) || is_digit_char(fmt) || is_whitespace_char(fmt))) {
             return SP_ERR_INVALID_FMT_STR;
         }
     }
     /* Check that endian character only at beginning */
-    for (int i = 0; i < fmt_len; i++) {
+    for (i = 0; i < fmt_len; i++) {
         if (is_endian_char(format_str[i]) && i > 0) {
             return SP_ERR_INVALID_FMT_STR;
         }
@@ -246,24 +247,56 @@ static SPResult validate_format_str(const char* format_str) {
     }
     /* Make sure the format string ends with a valid character */
     fmt = format_str[fmt_len - 1];
-    if (format_str[fmt_len - 1] != ')' && !is_fmt_char(format_str[fmt_len - 1]) && !is_whitespace_char(format_str[fmt_len - 1])) {
+    if (fmt != ')' && !is_fmt_char(fmt) && !is_whitespace_char(fmt)) {
         return SP_ERR_INVALID_FMT_STR;
     }
     /* Ensure groups are balanced and do not exceed maximum depth */
     int depth = 0;
-    for (int i = 0; i < fmt_len; i++) {
+    for (i = 0; i < fmt_len; i++) {
+        fmt = format_str[i];
         if (depth >= SP_MAX_GRP_DEPTH) {
             return SP_ERR_INVALID_FMT_STR;
         }
-        if (format_str[i] == '(') {
+        if (fmt == '(') {
             depth++;
-        } else if (format_str[i] == ')') {
+        } else if (fmt == ')') {
             depth--;
+        }
+        /* if depth < 0, it means we started with a closing parenthesis */
+        if (depth < 0) {
+            return SP_ERR_INVALID_FMT_STR;
         }
     }
     if (depth != 0) {
         return SP_ERR_INVALID_FMT_STR;
     }
+    /* Ensure correct array syntax */
+    sp_bool arr_open = SP_FALSE;
+    for (i = 0; i < fmt_len; i++) {
+        fmt = format_str[i];
+        if ((fmt == ']' && !arr_open) || (fmt == '[' && arr_open)) {
+            return SP_ERR_INVALID_FMT_STR;
+        }
+        if (fmt == '[') {
+            arr_open = SP_TRUE;
+        }
+        if (fmt == ']') {
+            arr_open = SP_FALSE;
+        }
+    }
+    /* Ensure no spaces between digits */
+    const char *tmp_fmt;
+    for (i = 0; i < fmt_len; i++) {
+        fmt = format_str[i];
+        if (is_digit_char(fmt) && is_whitespace_char(format_str[i + 1])) {
+            tmp_fmt = (format_str + i);
+            advance_fmt_str(&tmp_fmt);
+            if (is_digit_char(*tmp_fmt)) {
+                return SP_ERR_INVALID_FMT_STR;
+            }
+        }
+    }
+
     return SP_OK;
 }
 
@@ -325,6 +358,9 @@ static SPResult parse_next(struct fmt_str_parser* parser) {
         if (parser->groups.repeat[parser->groups.depth] == 0) {
             parser->groups.start[parser->groups.depth] = NULL;
             parser->groups.depth--;
+            if (parser->groups.depth < 0) {
+                return SP_ERR_INVALID_FMT_STR;
+            }
             advance_fmt_str(&parser->curr_pos);
             return parse_next(parser);
         } else {
@@ -400,19 +436,22 @@ static void sp_copy_64(void* struct_ptr, void* buff_ptr, int len, enum sp_endian
     }
 }
 
-static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void* buff, int buff_len) {
-    if (sd == NULL || buff == NULL || buff_len == 0) {
-        return SP_ERR_MISSING_PARAMS;
-    }
-    if (sd->field_ptr == NULL || sd->fmt_str == NULL || sd->num_fields == 0) {
-        return SP_ERR_MISSING_PARAMS;
-    }
+static SPResult sp_pack_unpack_bin( enum sp_action action, 
+                                    const char* fmt_str, 
+                                    int num_fields,
+                                    void** ptr_list, 
+                                    size_t* offset_list, 
+                                    void* offset_base,
+                                    void* buff, 
+                                    int buff_len) 
+{
+
     SPResult err;
-    err = validate_format_str(sd->fmt_str);
+    err = validate_format_str(fmt_str);
     if (err != SP_OK) {
         return err;
     }
-    struct fmt_str_parser p = new_parser(sd->fmt_str, &err);
+    struct fmt_str_parser p = new_parser(fmt_str, &err);
     if (err != SP_OK) {
         return err;
     }
@@ -422,7 +461,7 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
             parsed_count++;
         }
     }
-    if (parsed_count != sd->num_fields) {
+    if (parsed_count != num_fields) {
         return SP_ERR_FIELD_CNT;
     }
     reset_parser(&p);
@@ -432,7 +471,11 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
     int off_index = 0;
     int len;
     while ((res = parse_next(&p)) == SP_OK) {
-        struct_ptr = sd->field_ptr[off_index];
+        if (offset_list) {
+            struct_ptr = (uint8_t*)(offset_base + offset_list[off_index]);
+        } else {
+            struct_ptr = (uint8_t*)ptr_list[off_index];
+        }
         len = 1;
         if (p.current.arr_len > 0) {
             len = p.current.arr_len;
@@ -475,10 +518,52 @@ static SPResult sp_pack_unpack_bin(enum sp_action action, SPStructDef* sd, void*
     return res;
 }
 
-SPResult sp_unpack_bin(SPStructDef* sd, void* src_buff, int buff_len) {
-    return sp_pack_unpack_bin(SP_UNPACK, sd, src_buff, buff_len);
+SPResult sp_unpack_bin_ptr( const char* fmt_str, 
+                            int num_fields, 
+                            void** ptr_list, 
+                            void* src_buff, 
+                            int buff_len ) 
+{
+    if (!fmt_str || num_fields <= 0 || !ptr_list || !src_buff || buff_len <= 0) {
+        return SP_ERR_MISSING_PARAMS;
+    }
+    return sp_pack_unpack_bin(SP_UNPACK, fmt_str, num_fields, ptr_list, NULL, NULL, src_buff, buff_len);
 }
 
-SPResult sp_pack_bin(SPStructDef* sd, void* dest_buff, int buff_len) {
-    return sp_pack_unpack_bin(SP_PACK, sd, dest_buff, buff_len);
+SPResult sp_pack_bin_ptr(const char* fmt_str, 
+                         int num_fields, 
+                         void** ptr_list, 
+                         void* dest_buff, 
+                         int buff_len) 
+{
+    if (!fmt_str || num_fields <= 0 || !ptr_list || !dest_buff || buff_len <= 0) {
+        return SP_ERR_MISSING_PARAMS;
+    }
+    return sp_pack_unpack_bin(SP_PACK, fmt_str, num_fields, ptr_list, NULL, NULL, dest_buff, buff_len);
+}
+
+SPResult sp_unpack_bin_offset(  const char* fmt_str, 
+                                int num_fields, 
+                                size_t* offset_list, 
+                                void* offset_base,
+                                void* src_buff, 
+                                int buff_len ) 
+{
+    if (!fmt_str || num_fields <= 0 || !offset_list || !offset_base || !src_buff || buff_len <= 0) {
+        return SP_ERR_MISSING_PARAMS;
+    }
+    return sp_pack_unpack_bin(SP_UNPACK, fmt_str, num_fields, NULL, offset_list, offset_base, src_buff, buff_len);
+}
+
+SPResult sp_pack_bin_offset(const char* fmt_str, 
+                            int num_fields, 
+                            size_t* offset_list, 
+                            void* offset_base,
+                            void* dest_buff, 
+                            int buff_len) 
+{
+    if (!fmt_str || num_fields <= 0 || !offset_list || !offset_base || !dest_buff || buff_len <= 0) {
+        return SP_ERR_MISSING_PARAMS;
+    }
+    return sp_pack_unpack_bin(SP_PACK, fmt_str, num_fields, NULL, offset_list, offset_base, dest_buff, buff_len);
 }

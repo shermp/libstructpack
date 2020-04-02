@@ -82,31 +82,6 @@ struct FooterPtr create_foot_arr(MVHDFooter* footer) {
     return ptr_arr;
 }
 
-struct HeadPtr create_head_arr(MVHDSparseHeader* header) {
-    struct HeadPtr ptr_arr = {};
-    ptr_arr.arr[0] = &header->cookie;
-    ptr_arr.arr[1] = &header->data_offset;
-    ptr_arr.arr[2] = &header->bat_offset;
-    ptr_arr.arr[3] = &header->head_vers;
-    ptr_arr.arr[4] = &header->max_bat_ent;
-    ptr_arr.arr[5] = &header->block_sz;
-    ptr_arr.arr[6] = &header->checksum;
-    ptr_arr.arr[7] = &header->par_uuid;
-    ptr_arr.arr[8] = &header->par_timestamp;
-    ptr_arr.arr[9] = &header->reserved_1;
-    ptr_arr.arr[10] = &header->par_utf16_name;
-    int j = 11;
-    for (int i = 0; i < 8; i++) {
-        ptr_arr.arr[j] = &header->par_loc_entry[i].plat_code;
-        ptr_arr.arr[j + 1] = &header->par_loc_entry[i].plat_data_space;
-        ptr_arr.arr[j + 2] = &header->par_loc_entry[i].plat_data_len;
-        ptr_arr.arr[j + 3] = &header->par_loc_entry[i].reserved;
-        ptr_arr.arr[j + 4] = &header->par_loc_entry[i].plat_data_offset;
-        j += 5;
-    }
-    ptr_arr.arr[51] = &header->reserved_2;
-    return ptr_arr;
-}
 int main(int argc, char* argv[]) {
     if (argc != 2) {
         printf("Expected One argument: path to a sparse or differencing VHD file.\n");
@@ -119,18 +94,17 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
     int rv = EXIT_SUCCESS;
-    SPStructDef sd_footer = {};
     MVHDFooter footer = {};
     struct FooterPtr fp = create_foot_arr(&footer);
-    sd_footer.field_ptr = fp.arr;
-    sd_footer.num_fields = (int)(sizeof fp.arr / sizeof *fp.arr);
-    sd_footer.fmt_str = "> [8]s 2I Q I [4]s I [4]s 2Q HBB 2I [16]B B [427]B";
+    void** foot_field_ptr = fp.arr;
+    int foot_num_fields = (int)(sizeof fp.arr / sizeof *fp.arr);
+    const char* foot_fmt_str = "> [8]s 2I Q I [4]s I [4]s 2Q HBB 2I [16]B B [427]B";
 
     fseek(f, -512, SEEK_END);
     uint8_t foot_buff[512];
     fread(foot_buff, 512, 1, f);
 
-    SPResult res = sp_unpack_bin(&sd_footer, foot_buff, sizeof foot_buff);
+    SPResult res = sp_unpack_bin_ptr(foot_fmt_str, foot_num_fields, foot_field_ptr, foot_buff, sizeof foot_buff);
     if (res != SP_OK) {
         printf("Oops, something went wrong getting footer...\n");
         rv = EXIT_FAILURE;
@@ -144,22 +118,41 @@ int main(int argc, char* argv[]) {
     if (footer.data_offset != 0xffffffffffffffff) {
         uint8_t header_buff[1024];
         MVHDSparseHeader header = {};
-        SPStructDef sd_header = {};
-        struct HeadPtr hp = create_head_arr(&header);
-        sd_header.field_ptr = hp.arr;
-        sd_header.num_fields = (int)(sizeof hp.arr / sizeof *hp.arr);
-        sd_header.fmt_str = "> 8s 2Q 4I [16]B 2I [512]B 8(4s 3I Q) [256]B";
+        size_t head_offset[52];
+        head_offset[0] = offsetof(MVHDSparseHeader, cookie);
+        head_offset[1] = offsetof(MVHDSparseHeader, data_offset);
+        head_offset[2] = offsetof(MVHDSparseHeader, bat_offset);
+        head_offset[3] = offsetof(MVHDSparseHeader, head_vers);
+        head_offset[4] = offsetof(MVHDSparseHeader, max_bat_ent);
+        head_offset[5] = offsetof(MVHDSparseHeader, block_sz);
+        head_offset[6] = offsetof(MVHDSparseHeader, checksum);
+        head_offset[7] = offsetof(MVHDSparseHeader, par_uuid);
+        head_offset[8] = offsetof(MVHDSparseHeader, par_timestamp);
+        head_offset[9] = offsetof(MVHDSparseHeader, reserved_1);
+        head_offset[10] = offsetof(MVHDSparseHeader, par_utf16_name);
+        int j = 11;
+        for (int i = 0; i < 8; i++) {
+            head_offset[j] = offsetof(MVHDSparseHeader, par_loc_entry[i].plat_code);
+            head_offset[j + 1] = offsetof(MVHDSparseHeader, par_loc_entry[i].plat_data_space);
+            head_offset[j + 2] = offsetof(MVHDSparseHeader, par_loc_entry[i].plat_data_len);
+            head_offset[j + 3] = offsetof(MVHDSparseHeader, par_loc_entry[i].reserved);
+            head_offset[j + 4] = offsetof(MVHDSparseHeader, par_loc_entry[i].plat_data_offset);
+            j += 5;
+        }
+        head_offset[51] = offsetof(MVHDSparseHeader, reserved_2);
+        int header_num_fields = (int)(sizeof head_offset / sizeof *head_offset);
+        const char* header_fmt_str = "> 8s 2Q 4I [16]B 2I [512]B 8(4s 3I Q) [256]B";
 
         fseek(f, footer.data_offset, SEEK_SET);
         fread(header_buff, sizeof header_buff, 1, f);
-        res = sp_unpack_bin(&sd_header, header_buff, sizeof header_buff);
+        res = sp_unpack_bin_offset(header_fmt_str, header_num_fields, head_offset, &header, header_buff, sizeof header_buff);
         if (res != SP_OK) {
             printf("Oops, something went wrong getting header...\n");
             rv = EXIT_FAILURE;
             goto cleanup;
         }
         memset(header_buff, 0, sizeof header_buff);
-        res = sp_pack_bin(&sd_header, header_buff, sizeof header_buff);
+        res = sp_pack_bin_offset(header_fmt_str, header_num_fields, head_offset, &header, header_buff, sizeof header_buff);
         if (res != SP_OK) {
             printf("Oops, something went wrong setting header...\n");
             rv = EXIT_FAILURE;
@@ -169,7 +162,7 @@ int main(int argc, char* argv[]) {
         fwrite(header_buff, sizeof header_buff, 1, f);
     }
     memset(foot_buff, 0, sizeof foot_buff);
-    res = sp_pack_bin(&sd_footer, foot_buff, sizeof foot_buff);
+    res = sp_pack_bin_ptr(foot_fmt_str, foot_num_fields, foot_field_ptr, foot_buff, sizeof foot_buff);
     if (res != SP_OK) {
         printf("Oops, something went wrong setting footer...\n");
         rv = EXIT_FAILURE;

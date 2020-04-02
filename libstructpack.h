@@ -1,6 +1,8 @@
 #ifndef LIBSTRUCTPACK_H
 #define LIBSTRUCTPACK_H
 
+#include <stddef.h>
+
 /*******************************************************************
  *                   Format String Details                         *
  *******************************************************************
@@ -45,12 +47,6 @@
  * 8. Whitespace is (mostly) ignored
  *******************************************************************/
 
-typedef struct SPStructDef {
-    const char* fmt_str;
-    void**      field_ptr;
-    int      num_fields;
-} SPStructDef;
-
 typedef enum {
     SP_OK,
     SP_NULL_CHAR,
@@ -63,7 +59,36 @@ typedef enum {
     SP_ERR_FIELD_CNT
 } SPResult;
 
-SPResult sp_unpack_bin(SPStructDef* sd, void* src_buff, int buff_len);
-SPResult sp_pack_bin(SPStructDef* sd, void* dest_buff, int buff_len);
+SPResult sp_unpack_bin_ptr(
+    const char* fmt_str, 
+    int num_fields, 
+    void** ptr_list, 
+    void* src_buff, 
+    int buff_len
+);
+SPResult sp_pack_bin_ptr(
+    const char* fmt_str, 
+    int num_fields, 
+    void** ptr_list, 
+    void* dest_buff, 
+    int buff_len
+);
+
+SPResult sp_unpack_bin_offset(
+    const char* fmt_str, 
+    int num_fields, 
+    size_t* offset_list, 
+    void* offset_base,
+    void* src_buff, 
+    int buff_len
+);
+SPResult sp_pack_bin_offset(
+    const char* fmt_str, 
+    int num_fields, 
+    size_t* offset_list, 
+    void* offset_base,
+    void* dest_buff, 
+    int buff_len
+);
 
 #endif
