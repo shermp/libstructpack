@@ -1,6 +1,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include "libstructpack.h"
 
@@ -8,7 +9,6 @@
 
 enum sp_endian {SP_BIG_ENDIAN, SP_LITTLE_ENDIAN};
 enum sp_action {SP_PACK, SP_UNPACK};
-typedef enum { SP_FALSE, SP_TRUE } sp_bool;
 
 struct fmt_str_parser {
     const char* fmt_str;
@@ -27,6 +27,7 @@ struct fmt_str_parser {
     } current;
 };
 
+/* endian conversion functions */
 static uint16_t sp_from_be16(uint16_t val) {
     uint8_t *tmp = (uint8_t*)&val;
     uint16_t ret = 0;
@@ -143,6 +144,7 @@ static uint64_t sp_to_le64(uint64_t val) {
     tmp[0] = (val & 0x00000000000000ff) >> 0;
     return ret;
 }
+
 static const char* advance_fmt_str(const char** c);
 static void reset_parser(struct fmt_str_parser* parser) {
     parser->curr_pos = parser->fmt_str;
@@ -170,7 +172,7 @@ static struct fmt_str_parser new_parser(const char* fmt_str, SPResult* err) {
     return parser;
 }
 
-static sp_bool is_fmt_char(char fmt) {
+static bool is_fmt_char(char fmt) {
     if (
         fmt == 'x' || 
         fmt == 'b' || 
@@ -183,39 +185,39 @@ static sp_bool is_fmt_char(char fmt) {
         fmt == 'Q' ||
         fmt == 's'
     ) {
-        return SP_TRUE;
+        return true;
     }
-    return SP_FALSE;
+    return false;
 }
-static sp_bool is_endian_char(char end) {
+static bool is_endian_char(char end) {
     if (end == '<' || end == '>') {
-        return SP_TRUE;
+        return true;
     }
-    return SP_FALSE;
+    return false;
 }
-static sp_bool is_arr_char(char arr) {
+static bool is_arr_char(char arr) {
     if (arr == '[' || arr == ']') {
-        return SP_TRUE;
+        return true;
     }
-    return SP_FALSE;
+    return false;
 }
-static sp_bool is_group_char(char grp) {
+static bool is_group_char(char grp) {
     if (grp == '(' || grp == ')') {
-        return SP_TRUE;
+        return true;
     }
-    return SP_FALSE;
+    return false;
 }
-static sp_bool is_digit_char(char digit) {
+static bool is_digit_char(char digit) {
     if (digit >= '0' && digit <= '9') {
-        return SP_TRUE;
+        return true;
     }
-    return SP_FALSE;
+    return false;
 }
-static sp_bool is_whitespace_char(char ws) {
+static bool is_whitespace_char(char ws) {
     if (ws == ' ' || ws == '\t') {
-        return SP_TRUE;
+        return true;
     }
-    return SP_FALSE;
+    return false;
 }
 const char* advance_fmt_str(const char** c) {
     *c += 1;
@@ -271,17 +273,17 @@ static SPResult validate_format_str(const char* format_str) {
         return SP_ERR_INVALID_FMT_STR;
     }
     /* Ensure correct array syntax */
-    sp_bool arr_open = SP_FALSE;
+    bool arr_open = false;
     for (i = 0; i < fmt_len; i++) {
         fmt = format_str[i];
         if ((fmt == ']' && !arr_open) || (fmt == '[' && arr_open)) {
             return SP_ERR_INVALID_FMT_STR;
         }
         if (fmt == '[') {
-            arr_open = SP_TRUE;
+            arr_open = true;
         }
         if (fmt == ']') {
-            arr_open = SP_FALSE;
+            arr_open = false;
         }
     }
     /* Ensure no spaces between digits */
@@ -371,7 +373,7 @@ static SPResult parse_next(struct fmt_str_parser* parser) {
     }
     return SP_OK;
 }
-static void sp_copy_8(void* struct_ptr, void* buff_ptr, int len, enum sp_action action, sp_bool is_str) {
+static void sp_copy_8(void* struct_ptr, void* buff_ptr, int len, enum sp_action action, bool is_str) {
     if (action == SP_UNPACK) {
         memcpy(struct_ptr, buff_ptr, len);
         if (is_str) {
@@ -487,7 +489,7 @@ static SPResult sp_pack_unpack_bin( enum sp_action action,
                 break;
             case 'b':
             case 'B':
-                sp_copy_8(struct_ptr, buff_ptr, len, action, SP_FALSE);
+                sp_copy_8(struct_ptr, buff_ptr, len, action, false);
                 buff_ptr += len;
                 break;
             case 'h':
@@ -506,7 +508,7 @@ static SPResult sp_pack_unpack_bin( enum sp_action action,
                 buff_ptr += len * 8;
                 break;
             case 's':
-                sp_copy_8(struct_ptr, buff_ptr, len, action, SP_TRUE);
+                sp_copy_8(struct_ptr, buff_ptr, len, action, true);
                 buff_ptr += len;
                 break;
         }
