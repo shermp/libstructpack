@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "libstructpack.h"
+#include "../src/libstructpack.h"
 
 /* The following structs were adapted from my MiniVHD library to be used
    as an example... */
