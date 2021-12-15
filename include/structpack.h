@@ -1,5 +1,5 @@
-#ifndef LIBSTRUCTPACK_H
-#define LIBSTRUCTPACK_H
+#ifndef STRUCTPACK_H
+#define STRUCTPACK_H
 
 #include <stddef.h>
 
@@ -91,4 +91,4 @@ SPResult sp_pack_bin_offset(
     int buff_len
 );
 
-#endif
+#endif // STRUCTPACK_H

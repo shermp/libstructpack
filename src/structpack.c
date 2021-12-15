@@ -3,7 +3,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include "libstructpack.h"
+
+#include <structpack.h>
 
 #define SP_MAX_GRP_DEPTH 11
 
