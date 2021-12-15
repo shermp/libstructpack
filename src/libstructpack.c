@@ -35,6 +35,7 @@ static uint16_t sp_from_be16(uint16_t val) {
     ret |= (uint16_t)tmp[1] << 0;
     return ret;
 }
+
 static uint16_t sp_from_le16(uint16_t val) {
     uint8_t *tmp = (uint8_t*)&val;
     uint16_t ret = 0;
@@ -42,6 +43,7 @@ static uint16_t sp_from_le16(uint16_t val) {
     ret |= (uint16_t)tmp[0] << 0;
     return ret;
 }
+
 static uint32_t sp_from_be32(uint32_t val) {
     uint8_t *tmp = (uint8_t*)&val;
     uint32_t ret = 0;
@@ -51,6 +53,7 @@ static uint32_t sp_from_be32(uint32_t val) {
     ret |= (uint32_t)tmp[3] << 0;
     return ret;
 }
+
 static uint32_t sp_from_le32(uint32_t val) {
     uint8_t *tmp = (uint8_t*)&val;
     uint32_t ret = 0;
@@ -60,6 +63,7 @@ static uint32_t sp_from_le32(uint32_t val) {
     ret |= (uint32_t)tmp[0] << 0;
     return ret;
 }
+
 static uint64_t sp_from_be64(uint64_t val) {
     uint8_t *tmp = (uint8_t*)&val;
     uint64_t ret = 0;
@@ -73,6 +77,7 @@ static uint64_t sp_from_be64(uint64_t val) {
     ret |= (uint64_t)tmp[7] << 0;
     return ret;
 }
+
 static uint64_t sp_from_le64(uint64_t val) {
     uint8_t *tmp = (uint8_t*)&val;
     uint64_t ret = 0;
@@ -86,6 +91,7 @@ static uint64_t sp_from_le64(uint64_t val) {
     ret |= (uint64_t)tmp[0] << 0;
     return ret;
 }
+
 static uint16_t sp_to_be16(uint16_t val) {
     uint16_t ret = 0;
     uint8_t *tmp = (uint8_t*)&ret;
@@ -93,6 +99,7 @@ static uint16_t sp_to_be16(uint16_t val) {
     tmp[1] = (val & 0x00ff) >> 0;
     return ret;
 }
+
 static uint16_t sp_to_le16(uint16_t val) {
     uint16_t ret = 0;
     uint8_t *tmp = (uint8_t*)&ret;
@@ -100,6 +107,7 @@ static uint16_t sp_to_le16(uint16_t val) {
     tmp[0] = (val & 0x00ff) >> 0;
     return ret;
 }
+
 static uint32_t sp_to_be32(uint32_t val) {
     uint32_t ret = 0;
     uint8_t *tmp = (uint8_t*)&ret;
@@ -109,6 +117,7 @@ static uint32_t sp_to_be32(uint32_t val) {
     tmp[3] = (val & 0x000000ff) >> 0;
     return ret;
 }
+
 static uint32_t sp_to_le32(uint32_t val) {
     uint32_t ret = 0;
     uint8_t *tmp = (uint8_t*)&ret;
@@ -118,6 +127,7 @@ static uint32_t sp_to_le32(uint32_t val) {
     tmp[0] = (val & 0x000000ff) >> 0;
     return ret;
 }
+
 static uint64_t sp_to_be64(uint64_t val) {
     uint64_t ret = 0;
     uint8_t *tmp = (uint8_t*)&ret;
@@ -131,6 +141,7 @@ static uint64_t sp_to_be64(uint64_t val) {
     tmp[7] = (val & 0x00000000000000ff) >> 0;
     return ret;
 }
+
 static uint64_t sp_to_le64(uint64_t val) {
     uint64_t ret = 0;
     uint8_t *tmp = (uint8_t*)&ret;
@@ -146,6 +157,7 @@ static uint64_t sp_to_le64(uint64_t val) {
 }
 
 static const char* advance_fmt_str(const char** c);
+
 static void reset_parser(struct fmt_str_parser* parser) {
     parser->curr_pos = parser->fmt_str;
     parser->endian = SP_BIG_ENDIAN;
@@ -189,36 +201,42 @@ static bool is_fmt_char(char fmt) {
     }
     return false;
 }
+
 static bool is_endian_char(char end) {
     if (end == '<' || end == '>') {
         return true;
     }
     return false;
 }
+
 static bool is_arr_char(char arr) {
     if (arr == '[' || arr == ']') {
         return true;
     }
     return false;
 }
+
 static bool is_group_char(char grp) {
     if (grp == '(' || grp == ')') {
         return true;
     }
     return false;
 }
+
 static bool is_digit_char(char digit) {
     if (digit >= '0' && digit <= '9') {
         return true;
     }
     return false;
 }
+
 static bool is_whitespace_char(char ws) {
     if (ws == ' ' || ws == '\t') {
         return true;
     }
     return false;
 }
+
 const char* advance_fmt_str(const char** c) {
     *c += 1;
     while (is_whitespace_char(**c)) {
@@ -226,6 +244,7 @@ const char* advance_fmt_str(const char** c) {
     }
     return *c;
 }
+
 static SPResult validate_format_str(const char* format_str) {
     size_t fmt_len = strlen(format_str);
     int i;
@@ -373,6 +392,7 @@ static SPResult parse_next(struct fmt_str_parser* parser) {
     }
     return SP_OK;
 }
+
 static void sp_copy_8(void* struct_ptr, void* buff_ptr, int len, enum sp_action action, bool is_str) {
     if (action == SP_UNPACK) {
         memcpy(struct_ptr, buff_ptr, len);
@@ -403,6 +423,7 @@ static void sp_copy_16(void* struct_ptr, void* buff_ptr, int len, enum sp_endian
         dst += sizeof tmp16;
     }
 }
+
 static void sp_copy_32(void* struct_ptr, void* buff_ptr, int len, enum sp_endian endian, enum sp_action action) {
     uint32_t tmp32;
     int j;
@@ -420,6 +441,7 @@ static void sp_copy_32(void* struct_ptr, void* buff_ptr, int len, enum sp_endian
         dst += sizeof tmp32;
     }
 }
+
 static void sp_copy_64(void* struct_ptr, void* buff_ptr, int len, enum sp_endian endian, enum sp_action action) {
     uint64_t tmp64;
     int j;
