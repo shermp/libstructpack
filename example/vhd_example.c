@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "../src/libstructpack.h"
+#include <structpack.h>
 
 /* The following structs were adapted from my MiniVHD library to be used
    as an example... */
