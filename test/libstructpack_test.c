@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "../src/libstructpack.c"
+#include "../src/sp_parser.h"
 
 static int rv = 0;
 
