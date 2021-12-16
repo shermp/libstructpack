@@ -162,8 +162,8 @@ static void sp_copy_16(void* struct_ptr, void* buff_ptr, int len, enum sp_endian
             tmp16 = (endian == SP_BIG_ENDIAN) ? sp_to_be16(tmp16) : sp_to_le16(tmp16);
         }
         memcpy(dst, &tmp16, sizeof tmp16);
-        src += sizeof tmp16;
-        dst += sizeof tmp16;
+        src = (char*)src + sizeof tmp16;
+        dst = (char*)dst + sizeof tmp16;
     }
 }
 
@@ -180,8 +180,8 @@ static void sp_copy_32(void* struct_ptr, void* buff_ptr, int len, enum sp_endian
             tmp32 = (endian == SP_BIG_ENDIAN) ? sp_to_be32(tmp32) : sp_to_le32(tmp32);
         }
         memcpy(dst, &tmp32, sizeof tmp32);
-        src += sizeof tmp32;
-        dst += sizeof tmp32;
+        src = (char*)src + sizeof tmp32;
+        dst = (char*)dst + sizeof tmp32;
     }
 }
 
@@ -198,8 +198,8 @@ static void sp_copy_64(void* struct_ptr, void* buff_ptr, int len, enum sp_endian
             tmp64 = (endian == SP_BIG_ENDIAN) ? sp_to_be64(tmp64) : sp_to_le64(tmp64);
         }
         memcpy(dst, &tmp64, sizeof tmp64);
-        src += sizeof tmp64;
-        dst += sizeof tmp64;
+        src = (char*)src + sizeof tmp64;
+        dst = (char*)dst + sizeof tmp64;
     }
 }
 
@@ -239,7 +239,7 @@ static SPResult sp_pack_unpack_bin( enum sp_action action,
     int len;
     while ((res = parse_next(&p)) == SP_OK) {
         if (offset_list) {
-            struct_ptr = (uint8_t*)(offset_base + offset_list[off_index]);
+            struct_ptr = (uint8_t*)((char*)offset_base + offset_list[off_index]);
         } else {
             struct_ptr = (uint8_t*)ptr_list[off_index];
         }
