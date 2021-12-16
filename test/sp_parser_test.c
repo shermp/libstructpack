@@ -11,9 +11,9 @@
 static int rv = 0;
 
 #define SP_TEST_ASSERT(cond, str) if ((cond)) {        \
-        printf("[\033[1;32mPASS\033[0m] %s\n", (str)); \
+        printf("[PASS] %s\n", (str));                  \
     } else {                                           \
-        printf("[\033[1;31mFAIL\033[0m] %s\n", (str)); \
+        printf("[FAIL] %s\n", (str));                  \
         rv = 1;                                        \
     }                                                  
 
