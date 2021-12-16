@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2019-2021 John Smith
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #ifndef SP_INTERNAL_H
 #define SP_INTERNAL_H
 

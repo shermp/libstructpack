@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2019-2021 John Smith
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #ifndef STRUCTPACK_H
 #define STRUCTPACK_H
 

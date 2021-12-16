@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2019-2021 John Smith
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #include <limits.h>
 #include <stdbool.h>
 #include <string.h>
