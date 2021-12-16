@@ -96,48 +96,48 @@ static uint16_t sp_to_le16(uint16_t val) {
 static uint32_t sp_to_be32(uint32_t val) {
     uint32_t ret = 0;
     uint8_t *tmp = (uint8_t*)&ret;
-    tmp[0] = (val & 0xff000000) >> 24;
-    tmp[1] = (val & 0x00ff0000) >> 16;
-    tmp[2] = (val & 0x0000ff00) >> 8;
-    tmp[3] = (val & 0x000000ff) >> 0;
+    tmp[0] = (uint8_t)((val & 0xff000000) >> 24);
+    tmp[1] = (uint8_t)((val & 0x00ff0000) >> 16);
+    tmp[2] = (uint8_t)((val & 0x0000ff00) >> 8);
+    tmp[3] = (uint8_t)((val & 0x000000ff) >> 0);
     return ret;
 }
 
 static uint32_t sp_to_le32(uint32_t val) {
     uint32_t ret = 0;
     uint8_t *tmp = (uint8_t*)&ret;
-    tmp[3] = (val & 0xff000000) >> 24;
-    tmp[2] = (val & 0x00ff0000) >> 16;
-    tmp[1] = (val & 0x0000ff00) >> 8;
-    tmp[0] = (val & 0x000000ff) >> 0;
+    tmp[3] = (uint8_t)((val & 0xff000000) >> 24);
+    tmp[2] = (uint8_t)((val & 0x00ff0000) >> 16);
+    tmp[1] = (uint8_t)((val & 0x0000ff00) >> 8);
+    tmp[0] = (uint8_t)((val & 0x000000ff) >> 0);
     return ret;
 }
 
 static uint64_t sp_to_be64(uint64_t val) {
     uint64_t ret = 0;
     uint8_t *tmp = (uint8_t*)&ret;
-    tmp[0] = (val & 0xff00000000000000) >> 56;
-    tmp[1] = (val & 0x00ff000000000000) >> 48;
-    tmp[2] = (val & 0x0000ff0000000000) >> 40;
-    tmp[3] = (val & 0x000000ff00000000) >> 32;
-    tmp[4] = (val & 0x00000000ff000000) >> 24;
-    tmp[5] = (val & 0x0000000000ff0000) >> 16;
-    tmp[6] = (val & 0x000000000000ff00) >> 8;
-    tmp[7] = (val & 0x00000000000000ff) >> 0;
+    tmp[0] = (uint8_t)((val & 0xff00000000000000) >> 56);
+    tmp[1] = (uint8_t)((val & 0x00ff000000000000) >> 48);
+    tmp[2] = (uint8_t)((val & 0x0000ff0000000000) >> 40);
+    tmp[3] = (uint8_t)((val & 0x000000ff00000000) >> 32);
+    tmp[4] = (uint8_t)((val & 0x00000000ff000000) >> 24);
+    tmp[5] = (uint8_t)((val & 0x0000000000ff0000) >> 16);
+    tmp[6] = (uint8_t)((val & 0x000000000000ff00) >> 8);
+    tmp[7] = (uint8_t)((val & 0x00000000000000ff) >> 0);
     return ret;
 }
 
 static uint64_t sp_to_le64(uint64_t val) {
     uint64_t ret = 0;
     uint8_t *tmp = (uint8_t*)&ret;
-    tmp[7] = (val & 0xff00000000000000) >> 56;
-    tmp[6] = (val & 0x00ff000000000000) >> 48;
-    tmp[5] = (val & 0x0000ff0000000000) >> 40;
-    tmp[4] = (val & 0x000000ff00000000) >> 32;
-    tmp[3] = (val & 0x00000000ff000000) >> 24;
-    tmp[2] = (val & 0x0000000000ff0000) >> 16;
-    tmp[1] = (val & 0x000000000000ff00) >> 8;
-    tmp[0] = (val & 0x00000000000000ff) >> 0;
+    tmp[7] = (uint8_t)((val & 0xff00000000000000) >> 56);
+    tmp[6] = (uint8_t)((val & 0x00ff000000000000) >> 48);
+    tmp[5] = (uint8_t)((val & 0x0000ff0000000000) >> 40);
+    tmp[4] = (uint8_t)((val & 0x000000ff00000000) >> 32);
+    tmp[3] = (uint8_t)((val & 0x00000000ff000000) >> 24);
+    tmp[2] = (uint8_t)((val & 0x0000000000ff0000) >> 16);
+    tmp[1] = (uint8_t)((val & 0x000000000000ff00) >> 8);
+    tmp[0] = (uint8_t)((val & 0x00000000000000ff) >> 0);
     return ret;
 }
 
