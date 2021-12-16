@@ -3,6 +3,12 @@
 
 #include <stddef.h>
 
+#if defined(_MSC_VER) 
+#define SP_API __declspec(dllexport)
+#else
+#define SP_API
+#endif
+
 /*******************************************************************
  *                   Format String Details                         *
  *******************************************************************
@@ -59,14 +65,15 @@ typedef enum {
     SP_ERR_FIELD_CNT
 } SPResult;
 
-SPResult sp_unpack_bin_ptr(
+SP_API SPResult sp_unpack_bin_ptr(
     const char* fmt_str, 
     int num_fields, 
     void** ptr_list, 
     void* src_buff, 
     int buff_len
 );
-SPResult sp_pack_bin_ptr(
+
+SP_API SPResult sp_pack_bin_ptr(
     const char* fmt_str, 
     int num_fields, 
     void** ptr_list, 
@@ -74,7 +81,7 @@ SPResult sp_pack_bin_ptr(
     int buff_len
 );
 
-SPResult sp_unpack_bin_offset(
+SP_API SPResult sp_unpack_bin_offset(
     const char* fmt_str, 
     int num_fields, 
     size_t* offset_list, 
@@ -82,7 +89,8 @@ SPResult sp_unpack_bin_offset(
     void* src_buff, 
     int buff_len
 );
-SPResult sp_pack_bin_offset(
+
+SP_API SPResult sp_pack_bin_offset(
     const char* fmt_str, 
     int num_fields, 
     size_t* offset_list, 
