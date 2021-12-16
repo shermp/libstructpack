@@ -1,0 +1,36 @@
+name: Linux CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-ubuntu:
+    name: ${{ matrix.conf.name }}
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || contains('shermp', github.actor) == false
+
+    strategy:
+      matrix:
+        conf:
+          - name: GCC
+            packages: clang
+          - name: Clang
+
+    steps:
+      - name: Install prerequisites
+        run: |
+          sudo apt-get install -y build-essential ${{ matrix.conf.packages }}
+          sudo pip3 install --upgrade meson ninja 
+          
+      - name: Check out repo
+        uses: actions/checkout@v2
+
+      - name: Setup libstructpack
+        run: meson setup build
+
+      - name: Compile libstructpack
+        run: meson compile -C build
+
+      - name: Run tests
+        run: meson test -C build

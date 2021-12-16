@@ -1,0 +1,45 @@
+name: Windows CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-msvc:
+    name: ${{ matrix.conf.name }}
+    runs-on: windows-2022
+    if: github.event_name != 'pull_request' || contains('shermp', github.actor) == false
+
+    strategy:
+      matrix:
+        conf:
+          - name: MSVC 32-bit
+            arch: x86
+          - name: MSVC 64-bit
+            arch: x64
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+
+      - name: Install meson
+        run: pip install meson ninja
+
+      - name: Setup MSVC native shell
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.conf.arch }}
+
+      - name: Setup libstructpack
+        run: meson setup build
+
+      - name: Compile libstructpack
+        run: meson compile -C build
+
+      - name: Run tests
+        run: meson test -C build
