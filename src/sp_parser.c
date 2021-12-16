@@ -69,7 +69,7 @@ const char* advance_fmt_str(const char** c) {
 
 struct fmt_str_parser new_parser(const char* fmt_str, SPResult* err) {
     *err = SP_OK;
-    struct fmt_str_parser parser = {};
+    struct fmt_str_parser parser = {0};
     if (!fmt_str || fmt_str[0] == '\0') {
         *err = SP_NULL_CHAR;
         return parser;
