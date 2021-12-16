@@ -243,6 +243,9 @@ static SPResult sp_pack_unpack_bin( enum sp_action action,
     int off_index = 0;
     int len;
     while ((res = parse_next(&p)) == SP_OK) {
+        if ((buff_ptr - (uint8_t*)buff) > (ptrdiff_t)buff_len) {
+            return SP_ERR_BUFF_OVERRUN;
+        }
         if (offset_list) {
             struct_ptr = (uint8_t*)((char*)offset_base + offset_list[off_index]);
         } else {

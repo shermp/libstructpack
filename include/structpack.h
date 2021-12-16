@@ -24,7 +24,8 @@ typedef enum {
     SP_ERR_INVALID_ARR,
     SP_ERR_INVALID_FMT_STR,
     SP_ERR_INT,
-    SP_ERR_FIELD_CNT
+    SP_ERR_FIELD_CNT,
+    SP_ERR_BUFF_OVERRUN
 } SPResult;
 
 SP_API SPResult sp_unpack_bin_ptr(

@@ -102,7 +102,7 @@ void reset_parser(struct fmt_str_parser* parser) {
 
 SPResult validate_format_str(const char* format_str) {
     size_t fmt_len = strlen(format_str);
-    int i;
+    size_t i;
     /* Check for invalid characters */
     char fmt;
     for (i = 0; i < fmt_len; i++) {
