@@ -37,44 +37,38 @@ It should be compatible on most modern compilers. Basic C99 support is required.
 
 libstructpack requires using a format string to describe how to unpack or pack data to or from structs. A detailed description of this is given below.
 
-As well as the format string, a list of struct member offsets, or pointers or pointers is required. libstructpack will use the format string to copy data from a provided buffer to these members, or vice versa.
+As well as the format string, a list of struct member offsets, or pointers is required. libstructpack will use the format string to copy data from a provided buffer to these members, or vice versa.
 
-The following four functions are available:
-
+This is a basic example:
 ```c
-SP_API SPResult sp_unpack_bin_ptr(
-    const char* fmt_str, 
-    int num_fields, 
-    void** ptr_list, 
-    void* src_buff, 
-    int buff_len
-);
+   // Include headers
+   #include <stdint.h>
+   #include <structpack.h>
+   #include <sp_struct_offsets.h>
 
-SP_API SPResult sp_pack_bin_ptr(
-    const char* fmt_str, 
-    int num_fields, 
-    void** ptr_list, 
-    void* dest_buff, 
-    int buff_len
-);
+   uint8_t example_data[] = {0x00, 0x01, 0x86, 0xa0, 0x00, 0x00, 0x00, 0x01, 0xdc, 0xd6, 0x50, 0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21};
 
-SP_API SPResult sp_unpack_bin_offset(
-    const char* fmt_str, 
-    int num_fields, 
-    size_t* offset_list, 
-    void* offset_base,
-    void* src_buff, 
-    int buff_len
-);
+   // Define struct as normal
+   struct some_struct {
+      uint32_t a;
+      int64_t b;
+      char str[13];
+   };
 
-SP_API SPResult sp_pack_bin_offset(
-    const char* fmt_str, 
-    int num_fields, 
-    size_t* offset_list, 
-    void* offset_base,
-    void* dest_buff, 
-    int buff_len
-);
+   // Define format string
+   const char *fmt = ">Iq 12s";
+
+   int main(void) {
+      // Use helper macros in sp_struct_offsets.h to populate offset list
+      size_t offsets[3] = {0};
+      SP_ADD_STRUCT_OFFSET_3(offsets, 0, struct some_struct, a, b, str);
+      
+      struct some_struct s = {0};
+      SPResult res = sp_unpack_bin_offset(fmt, 3, offsets, &s, example_data, (int)(sizeof example_data))
+      if (res == SP_OK) {
+         // Do stuff with struct
+      }
+   }
 ```
 
 For the offset function variants, you only need to create an `offset_list` once per struct definition, along with its format string.
