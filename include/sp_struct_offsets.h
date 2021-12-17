@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2019-2021 Sherman Perry
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #ifndef SP_STRUCT_OFFSETS_H
 #define SP_STRUCT_OFFSETS_H
 

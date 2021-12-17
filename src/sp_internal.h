@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2019-2021 John Smith
+ * SPDX-FileCopyrightText: Copyright 2019-2021 Sherman Perry
  *
  * SPDX-License-Identifier: MIT
  */

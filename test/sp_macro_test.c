@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2019-2021 Sherman Perry
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #include <sp_struct_offsets.h>
 
 #include "sp_test.h"
