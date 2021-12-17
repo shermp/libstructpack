@@ -7,7 +7,7 @@
 
 #define ARR_LEN(arr) sizeof arr / sizeof arr[0]
 
-struct unpack {
+struct sp_pack_unpack {
     char hello[13];
     uint32_t spu32;
     int64_t spi64;
@@ -22,8 +22,8 @@ struct unpack {
     int16_t spi16arr[5];
     char spchar;
 };
-const char unpack_fmt_be[] = ">12s IqiQhH 3(qI) [5]h b";
-const char unpack_fmt_le[] = "<12s IqiQhH 3(qI) [5]h b";
+const char fmt_str_be[] = ">12s IqiQhH 3(qI) [5]h b";
+const char fmt_str_le[] = "<12s IqiQhH 3(qI) [5]h b";
 
 /* The following byte sequence was generated with
  * struct.pack('>12sIqiQhHqIqIqI5hc', b'Hello World!', 100000, -8000000000, -100000, 8000000000, -30000, 60000, -7000000000, 200000, 
@@ -37,21 +37,22 @@ static int rv = 0;
 
 int main(void) {
     size_t offsets[15] = {0};
-    SP_ADD_STRUCT_OFFSET_7(offsets, 0, struct unpack, hello, spu32, spi64, spi32, spu64, spi16, spu16);
+    SP_ADD_STRUCT_OFFSET_7(offsets, 0, struct sp_pack_unpack, hello, spu32, spi64, spi32, spu64, spi16, spu16);
     for (int i = 0; i < 3; ++i) {
-        SP_ADD_STRUCT_OFFSET_2(offsets, 7 + (2 * i), struct unpack, s_arr[i].spsti64, s_arr[i].spstu32);
+        SP_ADD_STRUCT_OFFSET_2(offsets, 7 + (2 * i), struct sp_pack_unpack, s_arr[i].spsti64, s_arr[i].spstu32);
     }
-    SP_ADD_STRUCT_OFFSET_2(offsets, 13, struct unpack, spi16arr, spchar);
+    SP_ADD_STRUCT_OFFSET_2(offsets, 13, struct sp_pack_unpack, spi16arr, spchar);
 
-    const char *fmt = unpack_fmt_be;
+    /* Test offset unpacking */
+    const char *fmt = fmt_str_be;
     uint8_t *bytes = bytes_be;
     int b_sz = (int)(sizeof bytes_be);
     const char *status;
     status = "\nTesting big endian data";
     for (int i = 0; i < 2; ++i) {
         printf("%s\n", status);
-        struct unpack up = {0};
-        SP_TEST_ASSERT(rv, sp_unpack_bin_offset(fmt, ARR_LEN(offsets), offsets, &up, bytes, b_sz) == SP_OK, "unpack");
+        struct sp_pack_unpack up = {0};
+        SP_TEST_ASSERT(rv, sp_unpack_bin_offset(fmt, ARR_LEN(offsets), offsets, &up, bytes, b_sz) == SP_OK, "sp_pack_unpack");
         SP_TEST_ASSERT(rv, strcmp((const char*)up.hello, "Hello World!") == 0, "compare hello world");
         SP_TEST_ASSERT(rv, up.spu32 == 100000, "spu32");
         SP_TEST_ASSERT(rv, up.spi64 == -8000000000, "spi64");
@@ -72,11 +73,15 @@ int main(void) {
         }
         SP_TEST_ASSERT(rv, up.spchar == 's', "spchar");
 
-        fmt = unpack_fmt_le;
+        fmt = fmt_str_le;
         bytes = bytes_le;
         b_sz = (int)(sizeof bytes_le);
 
         status = "\nTesting little endian data";
     }
+
+    /* Test offset packing */
+
+
     return rv;
 }
