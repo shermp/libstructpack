@@ -75,13 +75,36 @@ int main(void) {
 
         fmt = fmt_str_le;
         bytes = bytes_le;
-        b_sz = (int)(sizeof bytes_le);
 
         status = "\nTesting little endian data";
     }
 
     /* Test offset packing */
+    struct sp_pack_unpack pack = {
+        .hello = "Hello World!",
+        .spu32 = 100000,
+        .spi64 = -8000000000,
+        .spi32 = -100000,
+        .spu64 = 8000000000,
+        .spi16 = -30000,
+        .spu16 = 60000,
+        .s_arr[0].spsti64 = -7000000000,
+        .s_arr[0].spstu32 = 200000,
+        .s_arr[1].spsti64 = -8000000000,
+        .s_arr[1].spstu32 = 300000,
+        .s_arr[2].spsti64 = -9000000000,
+        .s_arr[2].spstu32 = 400000,
+        .spi16arr = {1000, 2000, 3000, 4000, 5000},
+        .spchar = 's'
+    };
 
+    uint8_t pack_buff[sizeof bytes_be] = {0};
+    SP_TEST_ASSERT(rv, sp_pack_bin_offset(fmt_str_be, ARR_LEN(offsets), offsets, &pack, pack_buff, b_sz) == SP_OK, "pack BE");
+    SP_TEST_ASSERT(rv, memcmp(pack_buff, bytes_be, b_sz) == 0, "compare BE buffer");
+    memset(pack_buff, 0, sizeof pack_buff);
+
+    SP_TEST_ASSERT(rv, sp_pack_bin_offset(fmt_str_le, ARR_LEN(offsets), offsets, &pack, pack_buff, b_sz) == SP_OK, "pack LE");
+    SP_TEST_ASSERT(rv, memcmp(pack_buff, bytes_le, sizeof pack_buff) == 0, "compare LE buffer");
 
     return rv;
 }
