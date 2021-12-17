@@ -14,21 +14,21 @@
 static const char* advance_fmt_str(const char** c);
 
 static bool is_fmt_char(char fmt) {
-    if (
-        fmt == 'x' || 
-        fmt == 'b' || 
-        fmt == 'B' || 
-        fmt == 'h' || 
-        fmt == 'H' || 
-        fmt == 'i' || 
-        fmt == 'I' || 
-        fmt == 'q' || 
-        fmt == 'Q' ||
-        fmt == 's'
-    ) {
-        return true;
+    switch (fmt) {
+        case 'x':
+        case 'b':
+        case 'B':
+        case 'h':
+        case 'H':
+        case 'i':
+        case 'I':
+        case 'q':
+        case 'Q':
+        case 's':
+            return true;
+        default:
+            return false;
     }
-    return false;
 }
 
 static bool is_endian_char(char end) {
