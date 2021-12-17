@@ -63,10 +63,23 @@ This is a basic example:
       size_t offsets[3] = {0};
       SP_ADD_STRUCT_OFFSET_3(offsets, 0, struct some_struct, a, b, str);
       
-      struct some_struct s = {0};
-      SPResult res = sp_unpack_bin_offset(fmt, 3, offsets, &s, example_data, (int)(sizeof example_data))
+      // Unpack data to struct
+      struct some_struct s1 = {0};
+      SPResult res = sp_unpack_bin_offset(fmt, 3, offsets, &s1, example_data, (int)(sizeof example_data))
       if (res == SP_OK) {
          // Do stuff with struct
+      }
+
+      // Pack struct to data
+      struct some_struct s2 = {
+         .a = 100000,
+         .b = 8000000000,
+         .c = 'Hello World!'
+      };
+      uint8_t data[sizeof example_data] = {0};
+      res = sp_pack_bin_offset(fmt, 3, offsets, &s2, data, (int)(sizeof data))
+      if (res == SP_OK) {
+         // Do more stuff
       }
    }
 ```
