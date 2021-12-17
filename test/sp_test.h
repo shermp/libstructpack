@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 
-#define SP_TEST_ASSERT(ret, cond, str) if ((cond)) {        \
+#define SP_TEST_ASSERT(ret, cond, str) if ((cond)) {   \
         printf("[PASS] %s\n", (str));                  \
     } else {                                           \
         printf("[FAIL] %s\n", (str));                  \
