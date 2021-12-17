@@ -28,6 +28,16 @@ typedef enum {
     SP_ERR_BUFF_OVERRUN
 } SPResult;
 
+/*!
+ * \brief Unpack binary data to a struct using pointers to struct members
+ * 
+ * \param fmt_str : format string to use to interpret incoming data structure
+ * \param num_fields : Number of fields to write to. Must match what fmt_str parses
+ * \param ptr_list : List of struct member pointers to write into
+ * \param src_buff : Source buffer to read from
+ * \param buff_len : Source buffer length in bytes
+ * \return SPResult : Result will be 'SP_OK' if unpacking was successful
+ */
 SP_API SPResult sp_unpack_bin_ptr(
     const char* fmt_str, 
     int num_fields, 
@@ -36,6 +46,16 @@ SP_API SPResult sp_unpack_bin_ptr(
     int buff_len
 );
 
+/*!
+ * \brief Pack binary data to a struct using pointers to struct members
+ * 
+ * \param fmt_str : format string to use to format outgoing data
+ * \param num_fields  : Number of fields to read from. Must match what fmt_str parses
+ * \param ptr_list : List of struct member pointers to read from
+ * \param dest_buff : Destination buffer to write to
+ * \param buff_len : Destination buffer length in bytes
+ * \return SPResult : Result will be 'SP_OK' if unpacking was successful
+ */
 SP_API SPResult sp_pack_bin_ptr(
     const char* fmt_str, 
     int num_fields, 
@@ -44,6 +64,18 @@ SP_API SPResult sp_pack_bin_ptr(
     int buff_len
 );
 
+/*!
+ * \brief Unpack binary data to a struct using struct member offsets
+ * 
+ * \param fmt_str : format string to use to interpret incoming data structure
+ *                  refer to README.md for format string documentation
+ * \param num_fields : Number of fields to write to. Must match what fmt_str parses
+ * \param offset_list : List of struct member offsets to write to
+ * \param offset_base : Address of structure to write into
+ * \param src_buff : Source buffer to read from
+ * \param buff_len : Source buffer length in bytes
+ * \return SPResult : Result will be 'SP_OK' if unpacking was successful
+ */
 SP_API SPResult sp_unpack_bin_offset(
     const char* fmt_str, 
     int num_fields, 
@@ -53,6 +85,17 @@ SP_API SPResult sp_unpack_bin_offset(
     int buff_len
 );
 
+/*!
+ * \brief Pack binary data to a struct using struct member offsets
+ * 
+ * \param fmt_str : format string to use to format outgoing data
+ * \param num_fields  : Number of fields to read from. Must match what fmt_str parses
+ * \param offset_list : List of struct member offsets to read from
+ * \param offset_base : Address of structure to read from
+ * \param dest_buff : Destination buffer to write to
+ * \param buff_len : Destination buffer length in bytes
+ * \return SPResult : Result will be 'SP_OK' if unpacking was successful
+ */
 SP_API SPResult sp_pack_bin_offset(
     const char* fmt_str, 
     int num_fields, 

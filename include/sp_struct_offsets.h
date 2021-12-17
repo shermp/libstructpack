@@ -5,6 +5,17 @@
 
 /* The following macros help make populating an offset list less tedious */
 
+/*!
+ * \brief Assign struct member offset(s) to an offset array
+ *
+ * The following macros use offsetof to add the offsets of <n> struct members
+ * to an offset array for use with sp_unpack_bin_offset and sp_pack_bin_offset.
+ * 
+ * \param arr : array of type size_t arr[]
+ * \param index : start index in arr to use
+ * \param type : struct type, eg: 'struct somestruct'
+ * \param mn : Struct member to obtain offset for. There can be up to 10, depending on macro
+ */
 #define SP_ADD_STRUCT_OFFSET_1(arr, index, type, m1) (arr)[(index)] = offsetof(type, m1)
 
 #define SP_ADD_STRUCT_OFFSET_2(arr, index, type, m1, m2) \
