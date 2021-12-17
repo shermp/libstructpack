@@ -23,7 +23,7 @@ struct s_test {
 static int rv = 0;
 
 int main(void) {
-    size_t offset_arr[15] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+    size_t offset_arr[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     SP_ADD_STRUCT_OFFSET_10(offset_arr, 0, struct s_test, mem1, mem2, mem3, mem4, mem5, mem6, mem7, mem8, mem9, mem10);
     for (size_t i = 0; i < 10; ++i) {
         SP_TEST_ASSERT(rv, offset_arr[i] == (sizeof(int) * i), "test offset_10 macro");
