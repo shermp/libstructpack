@@ -8,7 +8,6 @@
 #include <string.h>
 
 #include <structpack.h>
-#include <sp_struct_offsets.h>
 #include "sp_test.h"
 
 #define ARR_LEN(arr) sizeof arr / sizeof arr[0]

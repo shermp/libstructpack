@@ -16,7 +16,7 @@ foreach flag : ['-Wmaybe-uninitialized', '-Wextra-semi']
     endif
 endforeach
 
-inc = include_directories('include')
+inc = include_directories('src')
 
 subdir('src')
 subdir('test')

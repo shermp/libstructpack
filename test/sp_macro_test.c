@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <sp_struct_offsets.h>
-
+#include <structpack.h>
 #include "sp_test.h"
 
 struct s_test {

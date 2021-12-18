@@ -8,6 +8,7 @@
 #define STRUCTPACK_H
 
 #include <stddef.h>
+#include "sp_struct_offsets.h"
 
 #if defined(_MSC_VER) 
 #define SP_API __declspec(dllexport)
@@ -27,6 +28,19 @@ typedef enum {
     SP_ERR_FIELD_CNT,
     SP_ERR_BUFF_OVERRUN
 } SPResult;
+
+/*!
+ * \brief Assign struct member offset(s) to an offset array
+ *
+ * This variadic macro use offsetof to add the offsets of up to 16 struct members
+ * to an offset array for use with sp_unpack_bin_offset and sp_pack_bin_offset.
+ * 
+ * \param arr : array of type size_t arr[]
+ * \param index : start index in arr to use
+ * \param type : struct type, eg: 'struct somestruct'
+ * \param ... : Struct members to obtain offset for. There can be up to 16
+ */
+#define SP_ADD_STRUCT_OFFSET(arr, index, type, ...) EXPAND(GET_MACRO(__VA_ARGS__, SP_OFFSET16, SP_OFFSET15, SP_OFFSET14, SP_OFFSET13, SP_OFFSET12, SP_OFFSET11, SP_OFFSET10, SP_OFFSET9, SP_OFFSET8, SP_OFFSET7, SP_OFFSET6, SP_OFFSET5, SP_OFFSET4, SP_OFFSET3, SP_OFFSET2, SP_OFFSET1)(arr, index, type, __VA_ARGS__))
 
 /*!
  * \brief Unpack binary data to a struct using pointers to struct members
