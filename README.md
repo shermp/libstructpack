@@ -116,7 +116,7 @@ NOT identical however.
    | `Q`      | uint64_t               |
    | `s`      | char[]                 |
    | `w`      | uint16_t[] (wide char) |
-   | `u`      | uint32_t[] (unicode)
+   | `u`      | uint32_t[] (unicode)   |
 
 3. A format character may be preceeded by an integer, which will
    repeat that data type n times. Eg: `III` and `3I` are treated
