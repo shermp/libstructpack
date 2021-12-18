@@ -25,6 +25,8 @@ static bool is_fmt_char(char fmt) {
         case 'q':
         case 'Q':
         case 's':
+        case 'w':
+        case 'u':
             return true;
         default:
             return false;
@@ -211,7 +213,7 @@ SPResult parse_next(struct fmt_str_parser* parser) {
             advance_fmt_str((const char**)&end_pos);
         }
         /* Strings are special. They are always treated as arrays */
-        if (*end_pos == 's') {
+        if (*end_pos == 's' || *end_pos == 'w' || *end_pos == 'u') {
             parser->curr_pos = (const char*)end_pos;
             parser->current.repeat = 0;
             parser->current.arr_len = (int)num;

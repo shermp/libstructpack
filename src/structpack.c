@@ -154,7 +154,7 @@ static void sp_copy_8(void* struct_ptr, void* buff_ptr, int len, enum sp_action 
     }
 }
 
-static void sp_copy_16(void* struct_ptr, void* buff_ptr, int len, enum sp_endian endian, enum sp_action action) {
+static void sp_copy_16(void* struct_ptr, void* buff_ptr, int len, enum sp_endian endian, enum sp_action action, bool is_str) {
     uint16_t tmp16;
     int j;
     void *src = (action == SP_UNPACK) ? buff_ptr : struct_ptr;
@@ -170,9 +170,14 @@ static void sp_copy_16(void* struct_ptr, void* buff_ptr, int len, enum sp_endian
         src = (char*)src + sizeof tmp16;
         dst = (char*)dst + sizeof tmp16;
     }
+    if (action == SP_UNPACK && is_str) {
+        /* Note, it is made clear in the format string docs that the dest char array MUST be
+            at least one character longer than the provided length. */
+        ((uint16_t*)struct_ptr)[len] = '\0';
+    }
 }
 
-static void sp_copy_32(void* struct_ptr, void* buff_ptr, int len, enum sp_endian endian, enum sp_action action) {
+static void sp_copy_32(void* struct_ptr, void* buff_ptr, int len, enum sp_endian endian, enum sp_action action, bool is_str) {
     uint32_t tmp32;
     int j;
     void *src = (action == SP_UNPACK) ? buff_ptr : struct_ptr;
@@ -187,6 +192,11 @@ static void sp_copy_32(void* struct_ptr, void* buff_ptr, int len, enum sp_endian
         memcpy(dst, &tmp32, sizeof tmp32);
         src = (char*)src + sizeof tmp32;
         dst = (char*)dst + sizeof tmp32;
+    }
+    if (action == SP_UNPACK && is_str) {
+        /* Note, it is made clear in the format string docs that the dest char array MUST be
+            at least one character longer than the provided length. */
+        ((uint32_t*)struct_ptr)[len] = '\0';
     }
 }
 
@@ -267,12 +277,12 @@ static SPResult sp_pack_unpack_bin( enum sp_action action,
                 break;
             case 'h':
             case 'H':
-                sp_copy_16(struct_ptr, buff_ptr, len, p.endian, action);
+                sp_copy_16(struct_ptr, buff_ptr, len, p.endian, action, false);
                 buff_ptr += len * 2;
                 break;
             case 'i':
             case 'I':
-                sp_copy_32(struct_ptr, buff_ptr, len, p.endian, action);
+                sp_copy_32(struct_ptr, buff_ptr, len, p.endian, action, false);
                 buff_ptr += len * 4; 
                 break;
             case 'q':
@@ -283,6 +293,14 @@ static SPResult sp_pack_unpack_bin( enum sp_action action,
             case 's':
                 sp_copy_8(struct_ptr, buff_ptr, len, action, true);
                 buff_ptr += len;
+                break;
+            case 'w':
+                sp_copy_16(struct_ptr, buff_ptr, len, p.endian, action, true);
+                buff_ptr += len * 2;
+                break;
+            case 'u':
+                sp_copy_32(struct_ptr, buff_ptr, len, p.endian, action, true);
+                buff_ptr += len * 4;
                 break;
         }
         off_index++;

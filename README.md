@@ -103,18 +103,20 @@ NOT identical however.
    perform endian handling.
    The currently supported format characters are as follows:
 
-   | FMT_CHAR | C_TYPE             |
-   |----------|--------------------|
-   | `x`      | none (ignore byte) |
-   | `b`      | int8_t             |
-   | `B`      | uint8_t            |
-   | `h`      | int16_t            |
-   | `H`      | uint16_t           |
-   | `i`      | int32_t            |
-   | `I`      | uint32_t           |
-   | `q`      | int64_t            |
-   | `Q`      | uint64_t           |
-   | `s`      | char[]             |
+   | FMT_CHAR | C_TYPE                 |
+   |----------|------------------------|
+   | `x`      | none (ignore byte)     |
+   | `b`      | int8_t                 |
+   | `B`      | uint8_t                |
+   | `h`      | int16_t                |
+   | `H`      | uint16_t               |
+   | `i`      | int32_t                |
+   | `I`      | uint32_t               |
+   | `q`      | int64_t                |
+   | `Q`      | uint64_t               |
+   | `s`      | char[]                 |
+   | `w`      | uint16_t[] (wide char) |
+   | `u`      | uint32_t[] (unicode)
 
 3. A format character may be preceeded by an integer, which will
    repeat that data type n times. Eg: `III` and `3I` are treated
@@ -127,7 +129,7 @@ NOT identical however.
    will be repeated `n` times.
 6. `x` will skip reading/writing bytes to/from the buffer at that
    offset.
-7. `<n>s` and `[<n>]s` are treated the same. They are both treated as
-   a char array. Null termination is guaranteed, and so the 
+7. `<n>s|w|u` and `[<n>]s|w|u` are treated the same. They are both treated as
+   a char|wide|unicode array. Null termination is guaranteed, and so the 
    dest. struct field **MUST** be one element longer than the source.
 8. Whitespace is (mostly) ignored
