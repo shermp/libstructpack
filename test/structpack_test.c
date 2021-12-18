@@ -32,6 +32,8 @@ struct sp_pack_unpack {
 const char fmt_str_be[] = ">12s IqiQhH 3(qI) [5]h b 5w 5u";
 const char fmt_str_le[] = "<12s IqiQhH 3(qI) [5]h b 5w 5u";
 
+const char fmt_str_skip[] = ">24x iQhH 3(qI) [5]h b 5w 5u";
+
 /* The following byte sequence was generated with
  * struct.pack('>12sIqiQhHqIqIqI5hc5h5i', b'Hello World!', 100000, -8000000000, -100000, 8000000000, -30000, 60000, 
  *   -7000000000, 200000, -8000000000, 300000, -9000000000, 400000, 1000, 2000, 3000, 4000, 5000, b's', 
@@ -90,6 +92,23 @@ int main(void) {
 
         status = "\nTesting little endian data";
     }
+
+    /* Test unpack with skip bytes */
+    printf("\nTesting unpack with skip bytes\n");
+    struct sp_pack_unpack skip = {0};
+    size_t offsets_skip[14] = {0};
+    SP_ADD_STRUCT_OFFSET(offsets_skip, 0, struct sp_pack_unpack, spi32, spu64, spi16, spu16);
+    for (int i = 0; i < 3; ++i) {
+        SP_ADD_STRUCT_OFFSET(offsets_skip, 4 + (2 * i), struct sp_pack_unpack, s_arr[i].spsti64, s_arr[i].spstu32);
+    }
+    SP_ADD_STRUCT_OFFSET(offsets_skip, 10, struct sp_pack_unpack, spi16arr, spchar, helloW, worldU);
+    SP_TEST_ASSERT(rv, sp_unpack_bin_offset(fmt_str_skip, ARR_LEN(offsets_skip), offsets_skip, &skip, bytes_be, b_sz) == SP_OK, "sp_pack_unpack skip");
+    SP_TEST_ASSERT(rv, strcmp((const char*)skip.hello, "Hello World!") != 0, "compare hello world skip");
+    SP_TEST_ASSERT(rv, skip.spu32 != 100000, "spu32 skip");
+    SP_TEST_ASSERT(rv, skip.spi64 != -8000000000, "spi64 skip");
+    SP_TEST_ASSERT(rv, skip.spchar == 's', "spchar skip");
+    SP_TEST_ASSERT(rv, memcmp(skip.helloW, hW, sizeof hW) == 0, "helloW skip");
+    SP_TEST_ASSERT(rv, memcmp(skip.worldU, wU, sizeof wU) == 0, "worldU skip");
 
     /* Test offset packing */
     struct sp_pack_unpack pack = {
