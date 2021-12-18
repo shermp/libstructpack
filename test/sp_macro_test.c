@@ -30,13 +30,13 @@ static int rv = 0;
 
 int main(void) {
     size_t offset_arr[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    SP_ADD_STRUCT_OFFSET_10(offset_arr, 0, struct s_test, mem1, mem2, mem3, mem4, mem5, mem6, mem7, mem8, mem9, mem10);
+    SP_ADD_STRUCT_OFFSET(offset_arr, 0, struct s_test, mem1, mem2, mem3, mem4, mem5, mem6, mem7, mem8, mem9, mem10);
     for (size_t i = 0; i < 10; ++i) {
-        SP_TEST_ASSERT(rv, offset_arr[i] == (sizeof(int) * i), "test offset_10 macro");
+        SP_TEST_ASSERT(rv, offset_arr[i] == (sizeof(int) * i), "test SP_ADD_STRUCT_OFFSET macro with 10 args");
     }
-    SP_ADD_STRUCT_OFFSET_5(offset_arr, 10, struct s_test, mem11, mem12, mem13, mem14, mem15);
+    SP_ADD_STRUCT_OFFSET(offset_arr, 10, struct s_test, mem11, mem12, mem13, mem14, mem15);
     for (size_t i = 10; i < 15; ++i) {
-        SP_TEST_ASSERT(rv, offset_arr[i] == (sizeof(int) * i), "test offset_5 macro");
+        SP_TEST_ASSERT(rv, offset_arr[i] == (sizeof(int) * i), "test SP_ADD_STRUCT_OFFSET macro with 5 args");
     }
 
     return rv;

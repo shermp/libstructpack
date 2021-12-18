@@ -46,11 +46,11 @@ static int rv = 0;
 
 int main(void) {
     size_t offsets[17] = {0};
-    SP_ADD_STRUCT_OFFSET_7(offsets, 0, struct sp_pack_unpack, hello, spu32, spi64, spi32, spu64, spi16, spu16);
+    SP_ADD_STRUCT_OFFSET(offsets, 0, struct sp_pack_unpack, hello, spu32, spi64, spi32, spu64, spi16, spu16);
     for (int i = 0; i < 3; ++i) {
-        SP_ADD_STRUCT_OFFSET_2(offsets, 7 + (2 * i), struct sp_pack_unpack, s_arr[i].spsti64, s_arr[i].spstu32);
+        SP_ADD_STRUCT_OFFSET(offsets, 7 + (2 * i), struct sp_pack_unpack, s_arr[i].spsti64, s_arr[i].spstu32);
     }
-    SP_ADD_STRUCT_OFFSET_4(offsets, 13, struct sp_pack_unpack, spi16arr, spchar, helloW, worldU);
+    SP_ADD_STRUCT_OFFSET(offsets, 13, struct sp_pack_unpack, spi16arr, spchar, helloW, worldU);
 
     /* Test offset unpacking */
     uint16_t hW[] = {'H', 'e', 'l', 'l', 'o', '\0'};
