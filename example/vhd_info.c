@@ -17,7 +17,7 @@
     #define vhd_main() main(int argc, char *argv[])
     #define vhd_printf printf
     #define _L(str) str
-    #define vhd_fseek fseeko64
+    #define vhd_fseek fseeko
 #endif
 
 #define VHD_FAIL(str, file) fclose(file); vhd_printf(str); return EXIT_FAILURE;
@@ -70,7 +70,7 @@ struct vhd_sparse {
 const char* sparse_fmt_str = "> 8s 2q 3i I [16]B Ii [256]u 8(4s 3i q) [256]B";
 
 #define VHD_PRINT_ROW(label, val, ...) vhd_printf(_L("%-29s : "), label); vhd_printf(val, __VA_ARGS__); vhd_printf(_L("\n"));
-#define VHD_PRINT_ROW_A(label, val) vhd_printf(_L("%-29s : "), label); printf(val); vhd_printf(_L("\n"));
+#define VHD_PRINT_ROW_A(label, val) vhd_printf(_L("%-29s : "), label); printf("%s", val); vhd_printf(_L("\n"));
 
 const char* disk_type(int32_t type) {
     switch (type) {
@@ -124,13 +124,13 @@ int vhd_main() {
     VHD_PRINT_ROW_A(_L("Cookie"), footer.cookie);
     VHD_PRINT_ROW(_L("Features"), _L("%d"), footer.features);
     VHD_PRINT_ROW(_L("File Format Vers."), _L("%d"), footer.fi_fmt_vers);
-    VHD_PRINT_ROW(_L("Sparse Header Offset"), _L("%lld"), footer.data_offset);
+    VHD_PRINT_ROW(_L("Sparse Header Offset"), _L("%lld"), (long long)footer.data_offset);
     VHD_PRINT_ROW(_L("Timestamp"), _L("%u"), footer.timestamp);
     VHD_PRINT_ROW_A(_L("Creator App"), footer.cr_app);
     VHD_PRINT_ROW(_L("Creator Vers."), _L("%u"), footer.cr_vers);
     VHD_PRINT_ROW_A(_L("Creator Host OS"), footer.cr_host_os);
-    VHD_PRINT_ROW(_L("Original Size"), _L("%lld"), footer.orig_sz);
-    VHD_PRINT_ROW(_L("Current Size"), _L("%lld"), footer.curr_sz);
+    VHD_PRINT_ROW(_L("Original Size"), _L("%lld"), (long long)footer.orig_sz);
+    VHD_PRINT_ROW(_L("Current Size"), _L("%lld"), (long long)footer.curr_sz);
     VHD_PRINT_ROW(_L("[Geom] cyl"), _L("%hd"), footer.geom.cyl);
     VHD_PRINT_ROW(_L("[Geom] heads"), _L("%hhu"), footer.geom.heads);
     VHD_PRINT_ROW(_L("[Geom] spt"), _L("%hhu"), footer.geom.spt);
