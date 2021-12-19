@@ -1,6 +1,8 @@
 
 #if defined(_WIN32)
     #include <windows.h>
+#else
+    #define _POSIX_C_SOURCE 200808L
 #endif
 #include <stdio.h>
 #include <stdint.h>
