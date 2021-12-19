@@ -4,6 +4,7 @@
 #else
     #define _POSIX_C_SOURCE 200808L
 #endif
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -142,7 +143,7 @@ int vhd_main() {
     fclose(vhd_file);
 
     //VHD_PRINT_ROW_A(_L("Cookie"), f)
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 #if defined(_MSC_VER)
